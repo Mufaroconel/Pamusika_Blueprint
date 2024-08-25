@@ -1,31 +1,40 @@
 from wa_cloud_py import WhatsApp
+from dotenv import load_dotenv
+import os
 from wa_cloud_py.message_components import ListSection, SectionRow
-from catalog import send_catalog
-from payment_method import which_payment_method
-from confirm_payment import confirm_payment
-from text_messages import GreetingMessages, InformationalMessages, ConfirmationMessages, ErrorMessages, PromotionalMessages
+from messages.payment_method import which_payment_method
+from messages.confirm_payment import confirm_payment
+from messages.text_messages import GreetingMessages, InformationalMessages, ConfirmationMessages, ErrorMessages, PromotionalMessages
+from messages.send_image import send_image
+from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order,order_confirmed,make_changes, handle_cancellation,sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option
+from wa_cloud_py.message_components import CatalogSection
 
 
-whatsapp = WhatsApp(access_token="EAFhvAtxZBbY4BO3v8S8e0pa4NlJZAqo37oqYfx6wKp0deuuJ86j3v0aZC1ETAPZBZBNUvMccDhlfW4A8Bue4fGzmWKZAMCbCGDmBMPrp06IafBaHeRpOyZCvRemSICJ8hqmqAU0xEb0F2Bk0zWuwhZBVZCluTUSgTRop7XRCNIebY2aQGCmiI2ICnffZBZCYzNm6Y2awHEP63tcxsoGn28sNRcZD", phone_number_id="228270780366581")
+load_dotenv()
+token = os.getenv("WA_TOKEN")
+phone_id = os.getenv("PHONE_ID")
+whatsapp = WhatsApp(access_token=token, phone_number_id=phone_id)
 phone_number = "0776681617"
-message_body = "Hello?"
 catalog_id = "253006871078558"
-
-# whatsapp.send_text(to="0776681617", body="Hello world!")
-# whatsapp.send_text(to="0734635133", body="Msoro bhangue")
-# whatsapp.send_location(to="0776681617", name="My Locations", address="Harare", latitude=-17.8728918070979, longitude=30.935103469966368)
+image_url = "https://images.unsplash.com/photo-1622618760546-8e443f8a909b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2hpYmElMjBpbnV8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60"
 
 
-# whatsapp.send_reaction(to=phone_number, message_id="wami.dabc123", emoji="😲")
-# whatsapp.send_image(
-#   to=phone_number,
-#   url="https://images.unsplash.com/photo-1622618760546-8e443f8a909b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2hpYmElMjBpbnV8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
-#   caption="So much wow",
-# )
-
-whatsapp.send_text(to=phone_number, body=InformationalMessages.informational_message_5())
 
 
-# confirm_payment(whatsapp, phone_number)
-# which_payment_method(whatsapp, phone_number)
-# send_catalog(phone_number, catalog_id, whatsapp)
+# greet_user_and_select_option(whatsapp, phone_number, ListSection, SectionRow)
+# send_catalog(phone_number, catalog_id, whatsapp, CatalogSection)
+# confirm_order(whatsapp, phone_number, ListSection, SectionRow)
+# order_confirmed(whatsapp, phone_number, ListSection, SectionRow)
+# make_changes(phone_number, catalog_id, whatsapp, CatalogSection)
+# handle_cancellation(whatsapp, phone_number)
+
+# sent_to_packaging(whatsapp, phone_number, ListSection, SectionRow)
+# packaging_received(whatsapp, phone_number, ListSection, SectionRow)
+# order_packed(whatsapp, phone_number, ListSection, SectionRow)
+order_on_way(whatsapp, phone_number, ListSection, SectionRow)
+# order_delivered(whatsapp, phone_number, ListSection, SectionRow)
+# no_orders(whatsapp, phone_number, ListSection, SectionRow)
+# tracking_issue(whatsapp, phone_number, ListSection, SectionRow)
+# invalid_option(whatsapp, phone_number, ListSection, SectionRow)
+# select_correct_option(whatsapp, phone_number, ListSection, SectionRow)
+

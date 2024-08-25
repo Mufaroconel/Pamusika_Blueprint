@@ -1,13 +1,10 @@
-from wa_cloud_py import WhatsApp
-from wa_cloud_py.message_components import CatalogSection
 
-
-def send_catalog(phone_number, catalog_id, whatsapp):
+def send_catalog(phone_number, catalog_id, whatsapp, CatalogSection):
     whatsapp.send_catalog_product_list(
     to=phone_number,  # Replace with the actual phone number
     catalog_id= catalog_id,  # Replace with your actual catalog ID
     header="🍎🥦 Available Fresh Produce at Musika 🥕🍊",
-    body="🌟 Select a product and add it to your cart 🛒\n\nMusika in Mufakose Magandanga brings you the freshest produce, straight from the farm to your table! 🍅🍍",
+    body="🌟 Great! Let's get started with placing your order. I'll show you our catalog, and you can pick the items you'd like to buy. 🛒\n\nMusika in Mufakose Magandanga brings you the freshest produce, straight from the farm to your table! 🍅🍍",
     product_sections=[
         CatalogSection(
             title="Fresh Fruits", 
