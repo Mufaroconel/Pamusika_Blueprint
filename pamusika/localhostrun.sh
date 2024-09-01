@@ -296,6 +296,9 @@ e3dc3d1867f352.lhr.life tunneled with tls termination, https://e3dc3d1867f352.lh
 create an account and add your key for a longer lasting domain name. see https://localhost.run/docs/forever-free/ for more information.
 Open your tunnel address on your mobile with this QR:
 
+## using serveo run the following command
+
+ssh -R 80:localhost:3000 serveo.net
                                                       
                                                       
                                                       
@@ -310,8 +313,7 @@ Open your tunnel address on your mobile with this QR:
                                                       
                                                       
                                                       
-                                                      
-                                                      
+                               
                                                       
                                                       
                                                       

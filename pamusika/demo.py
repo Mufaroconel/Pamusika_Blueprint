@@ -14,9 +14,9 @@ load_dotenv()
 wa_access_token = os.getenv("WA_TOKEN")
 phone_id = os.getenv("PHONE_ID")
 whatsapp = WhatsApp(access_token=wa_access_token, phone_number_id=phone_id)
-# phone_number = "0776681617"
+phone_number = "0776681617"
 # phone_number = "0782849634"
-phone_number = "0711475883"
+# phone_number = "0711475883"
 catalog_id = "253006871078558"
 image_url = "https://images.unsplash.com/photo-1622618760546-8e443f8a909b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2hpYmElMjBpbnV8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60"
 
@@ -24,7 +24,7 @@ image_url = "https://images.unsplash.com/photo-1622618760546-8e443f8a909b?ixlib=
 
 
 greet_user_and_select_option(whatsapp, phone_number, ListSection, SectionRow)
-# send_catalog(phone_number, catalog_id, whatsapp, CatalogSection)
+send_catalog(phone_number, catalog_id, whatsapp, CatalogSection)
 # confirm_order(whatsapp, phone_number, ListSection, SectionRow)
 # order_confirmed(whatsapp, phone_number, ListSection, SectionRow)
 # make_changes(phone_number, catalog_id, whatsapp, CatalogSection)

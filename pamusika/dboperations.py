@@ -126,3 +126,13 @@ def get_filtered_orders(order_status=None, customer_name=None, order_id=None, cu
     orders = query.all()
     
     return orders
+
+def user_exists(phone):
+    """
+    Checks if a user exists in the database based on the provided phone number.
+    
+    :param phone_number: The phone number of the user to check.
+    :return: True if the user exists, False otherwise.
+    """
+    user = Customer.query.filter_by(phone=phone).first()
+    return user is not None

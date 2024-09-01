@@ -1,3 +1,32 @@
+def request_user_name(whatsapp, phone_number):
+    whatsapp.send_message(
+        to=phone_number,
+        body=(
+            "🏷️ Let's get you registered! Please provide the following details to complete your registration:\n\n"
+            "1. **Full Name**: Please reply with your full name."
+        ),
+        footer="Pamusika Registration"
+    )
+
+def request_contact_number(whatsapp, phone_number):
+    whatsapp.send_message(
+        to=phone_number,
+        body=(
+            "📞 Great! Now, please provide your contact number."
+        ),
+        footer="Pamusika Registration"
+    )
+
+def request_address(whatsapp, phone_number):
+    whatsapp.send_message(
+        to=phone_number,
+        body=(
+            "🏠 Finally, please provide your delivery address."
+        ),
+        footer="Pamusika Registration"
+    )
+
+
 def greet_user_and_select_option(whatsapp, phone_number, ListSection, SectionRow):
     whatsapp.send_interactive_list(
         to=phone_number,
@@ -24,6 +53,29 @@ def greet_user_and_select_option(whatsapp, phone_number, ListSection, SectionRow
         ],
         footer="#MufakoseHarvest #MagandangaDelights"
     )
+def notify_user_about_support_model(whatsapp, phone_number, ListSection, SectionRow):
+    whatsapp.send_interactive_list(
+        to=phone_number,
+        header="💬Customer Support!",
+        body=(
+            "⚠️ **Please Note:**\n\n"
+            "Our customer support LLM model or agent is still under training, and we're continually working to improve its performance. "
+            "We appreciate your understanding and patience as we strive to provide the best possible service.\n\n"
+            "For any urgent issues, feel free to reach out to our human support team, who are always ready to assist you."
+        ),
+        button="Select an Option",
+            sections=[
+                ListSection(
+                    title="Your Next Steps",
+                    rows=[
+                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
+                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
+                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    ],
+                ),
+            ],
+            footer="#MufakoseHarvest #MagandangaDelights"
+    )
 
 def send_catalog(phone_number, catalog_id, whatsapp, CatalogSection):
     whatsapp.send_catalog_product_list(
@@ -37,6 +89,7 @@ def send_catalog(phone_number, catalog_id, whatsapp, CatalogSection):
             retailer_product_ids=[
                 "smdx1imjv1",  # Orange🍊
                 "yv12oorgoj",  # Pineapple🍍
+                "ddljtudt75",  # Apple🍎
                 "19tdnzbn2k",  # Banana🍌
             ]
         ),
@@ -50,7 +103,6 @@ def send_catalog(phone_number, catalog_id, whatsapp, CatalogSection):
                 "kaif9wtpmq",  # Covo🥦
                 "4jenulsjmg",  # Green Pepper🫑
                 "p95w970hrf",  # Onion🧅
-                "ddljtudt75",  # Apple🍎
             ]
         ),
     ],
@@ -345,3 +397,5 @@ def select_correct_option(whatsapp, phone_number, ListSection, SectionRow):
         ],
         footer="#MufakoseHarvest #MagandangaDelights"
     )
+
+

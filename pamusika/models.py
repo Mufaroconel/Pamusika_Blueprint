@@ -16,7 +16,9 @@ class Customer(db.Model):
     name = db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
-        return f'<Customer {self.username}>'
+        return (f"<Order {self.id} - Date: {self.order_date}, Status: {self.status}, "
+                f"Total Amount: {self.total_amount}, Delivery Address: {self.delivery_address}, "
+                f"Fruits: {self.fruits_items}, Vegetables: {self.vegetables_items}>")
     
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
