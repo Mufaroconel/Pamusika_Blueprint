@@ -29,6 +29,17 @@ migrate = Migrate(app, db)
 
 catalog_id = "253006871078558"
 
+phone = "263776681617"
+with app.app_context():
+    orders = get_orders(phone)  
+    if orders :
+        for order in orders:
+            order_status = order.status
+        if order_status == "Sent to Packaging":
+            print("Order found sent to packaging")
+    else :
+        print("order not found")
+
 @app.route("/dashboard")
 def index():
     order_status = request.args.get('order_status')
@@ -44,7 +55,11 @@ def index():
     return render_template("dashboard.html", orders=orders)
 
 whatsapp = WhatsApp(access_token=wa_access_token, phone_number_id=phone_id)
-phone_number = "0776681617"
+phone = "263776681617"
+
+with app.app_context():
+    user_exist = user_exists(phone)
+    print(f"Does the user with phone number {phone} exist? {'Yes' if user_exist else 'No'}")
 
 processed_messages = set()
 class GroupAPI(MethodView): 
@@ -74,8 +89,19 @@ class GroupAPI(MethodView):
             phone = message.user.phone_number
 
             if isinstance(message, TextMessage):
-                message_sent, res = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
-                pass
+                # message_sent, res = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
+                with app.app_context():
+                    user = get_customer_by_phone(phone)
+                    if user :
+                        message_sent, res = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
+                    else :
+                        message_sent, res = request_user_name(whatsapp, phone)
+                        if isinstance(message, TextMessage):
+                            message_sent, res = request_contact_number(whatsapp, phone, ListSection, SectionRow)
+                            if isinstance(message, TextMessage):
+                                message_sent, res = request_address(whatsapp, phone, ListSection, SectionRow)
+                                if isinstance(message, TextMessage):
+                                    message_sent, res = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
             elif isinstance(message, InteractiveListMessage):
                 user_choice = message.reply_id
                 if user_choice == "place_order":
@@ -83,23 +109,26 @@ class GroupAPI(MethodView):
                 elif user_choice == "track_order":
                     with app.app_context():
                         orders = get_orders(phone)  
-                        for order in orders:
-                            order_status = order.status
-                        if order_status == "Sent to Packaging":
-                            message_sent, res = sent_to_packaging(whatsapp, phone, ListSection, SectionRow)
-                        elif order_status == "Packaging received":
-                            message_sent, res = packaging_received(whatsapp, phone, ListSection, SectionRow)
-                        elif order_status == "Packed":
-                            message_sent, res = order_packed(whatsapp, phone, ListSection, SectionRow)
-                        elif order_status == "Sent for delivery":
-                            message_sent, res = order_on_way(whatsapp, phone, ListSection, SectionRow)
-                        else :
+                        if orders :
+                            for order in orders:
+                                order_status = order.status
+                            if order_status == "Sent to Packaging":
+                                message_sent, res = sent_to_packaging(whatsapp, phone, ListSection, SectionRow)
+                            elif order_status == "Packaging received":
+                                message_sent, res = packaging_received(whatsapp, phone, ListSection, SectionRow)
+                            elif order_status == "Packed":
+                                message_sent, res = order_packed(whatsapp, phone, ListSection, SectionRow)
+                            elif order_status == "Sent for delivery":
+                                message_sent, res = order_on_way(whatsapp, phone, ListSection, SectionRow)
+                            else :
+                                message_sent, res = no_orders(whatsapp, phone, ListSection, SectionRow)
+                        else:
                             message_sent, res = no_orders(whatsapp, phone, ListSection, SectionRow)
-
                 elif user_choice == "customer_support":
                     message_sent, res = notify_user_about_support_model(whatsapp, phone, ListSection, SectionRow)
             elif isinstance(message, OrderMessage):
-                pass
+                products = message.products
+                message_sent, res = whatsapp.send_text(phone, f"Order confirmed. You have ordered {products}.")
             elif isinstance(message, MessageStatus):
                 print(message)
                 pass

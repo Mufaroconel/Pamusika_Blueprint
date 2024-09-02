@@ -1,29 +1,26 @@
 def request_user_name(whatsapp, phone_number):
-    whatsapp.send_message(
+    whatsapp.send_text(
         to=phone_number,
         body=(
             "🏷️ Let's get you registered! Please provide the following details to complete your registration:\n\n"
             "1. **Full Name**: Please reply with your full name."
         ),
-        footer="Pamusika Registration"
     )
 
 def request_contact_number(whatsapp, phone_number):
-    whatsapp.send_message(
+    whatsapp.send_text(
         to=phone_number,
         body=(
             "📞 Great! Now, please provide your contact number."
         ),
-        footer="Pamusika Registration"
     )
 
 def request_address(whatsapp, phone_number):
-    whatsapp.send_message(
+    whatsapp.send_text(
         to=phone_number,
         body=(
             "🏠 Finally, please provide your delivery address."
         ),
-        footer="Pamusika Registration"
     )
 
 

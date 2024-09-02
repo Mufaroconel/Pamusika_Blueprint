@@ -13,11 +13,11 @@ db.init_app(app)
 migrate = Migrate(app, db)
 # user information
 
-phone = "0711475483"
-username = "Mufa"
-address = "6ds9 Jirewi Cfsfreascent Mufakose, Harare"
-surname = "Nyewakudyfdsa"
-name = "Mfdsweufaro"
+phone = "263776681617"
+username = "Muhhfnna"
+address = "6dsbb9nnn Jirewi Cfsfreascent Mufakose, Harare"
+surname = "Nyehhwakudyfdsa"
+name = "Mfdswebbjufaro"
 
 # order information
 # usage in a view function or script
@@ -35,14 +35,22 @@ total_amount = 6.20
 
 
 with app.app_context():
-    # user_exist = user_exists(phone)
+    user_exist = user_exists(phone)
     # print(f"Does the user with phone number {phone} exist? {'Yes' if user_exist else 'No'}")
 
 
     # add_customer = add_customer(phone, username, address, surname, name, latitude=None, longitude=None)
     # customer = get_customer_by_phone(phone)
-    order = add_order(phone, delivery_address, total_amount, fruits_items, vegetables_items)
+    # order = add_order(phone, delivery_address, total_amount, fruits_items, vegetables_items)
+    # all_orders = get_all_orders()
     # order = get_orders(phone)
+    # if all_orders :
+    #     for order in all_orders:
+    #         customer_id = order.customer_id
+    #         order_status = order.status
+    #     print (f"order found for {phone}")
+    # else:
+    #     print("order not found")
     # update_order_status = update_order_status(4, "Packed")
     # if customer:
     #     """ if the customer is registered,return a greeting and the start of the conversational flow
@@ -58,9 +66,9 @@ with app.app_context():
     #     print("Customer not found.")
     
     # if add_customer:
-        # print(f"Customer Added: {add_customer.name} {add_customer.surname}, Username: {add_customer.username}")
+    #     print(f"Customer Added: {add_customer.name} {add_customer.surname}, Username: {add_customer.username}")
     # else:
-        # print("Customer not added.")
+    #     print("Customer not added.")
 
 #     from flask import request
 
