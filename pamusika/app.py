@@ -89,7 +89,6 @@ class GroupAPI(MethodView):
             phone = message.user.phone_number
 
             if isinstance(message, TextMessage):
-                # message_sent, res = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
                 with app.app_context():
                     user = get_customer_by_phone(phone)
                     if user :
@@ -98,7 +97,7 @@ class GroupAPI(MethodView):
                         message_sent, res = request_user_name(whatsapp, phone)
                         if isinstance(message, TextMessage):
                             message_sent, res = request_contact_number(whatsapp, phone, ListSection, SectionRow)
-                            if isinstance(message, TextMessage):
+                            if isinstance(message, TextMessage):      
                                 message_sent, res = request_address(whatsapp, phone, ListSection, SectionRow)
                                 if isinstance(message, TextMessage):
                                     message_sent, res = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
