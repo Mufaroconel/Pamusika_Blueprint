@@ -37,7 +37,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Pamusika Dashboard</a>
+            <img src="Assets/musika-logo.png" alt="" width="10px" height="10px"><a class="navbar-brand" href="#">Pamusika Dashboard</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -230,7 +230,36 @@
 
                     <!-- Users Section -->
                     <div class="tab-pane fade" id="list-users" role="tabpanel" aria-labelledby="list-users-list">
-                        <h3>Users</h3>
+                        <h3>Users ({{total_users}}) </h3>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Phone</th>
+                                    <th>Username</th>
+                                    <th>Address</th>
+                                    <th>Latitude</th>
+                                    <th>Longitude</th>
+                                    <th>Name</th>
+                                    <th>State</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loop through users here -->
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.phone }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.address }}</td>
+                                    <td>{{ user.latitude }}</td>
+                                    <td>{{ user.longitude }}</td>
+                                    <td>{{ user.name }}</td>
+                                    <td>{{ user.state }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                         <!-- Users content goes here -->
                     </div>
 

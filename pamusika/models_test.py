@@ -1,10 +1,10 @@
-from dboperations import add_customer, get_customer_by_phone, add_order, get_orders, update_order_status, get_all_orders, get_filtered_orders, user_exists
+from dboperations import add_customer, get_customer_by_phone, add_order, get_orders, update_order_status, get_all_orders, get_filtered_orders, user_exists, delete_all_customers
 from models import db, Customer, init_db, Order
 from flask import Flask, request, jsonify, render_template
 from flask_migrate import Migrate
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///customers.db'  # Use SQLite for simplicity
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///musika.db'  # Use SQLite for simplicity
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
 
@@ -35,8 +35,9 @@ total_amount = 6.20
 
 
 with app.app_context():
-    user_exist = user_exists(phone)
-    # print(f"Does the user with phone number {phone} exist? {'Yes' if user_exist else 'No'}")
+    delete_all_customers()
+    # user_exist = get_customer_by_phone(phone)
+    # print(f"Does the user with phone number {user_exist.phone} and name {user_exist.name} exist? {'Yes' if user_exist else 'No'}")
 
 
     # add_customer = add_customer(phone, username, address, surname, name, latitude=None, longitude=None)

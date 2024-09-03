@@ -1,11 +1,20 @@
 # dboperations.py
-from models import db, Customer, Order
+from models import db
+from models import Customer, Order
 # from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import aliased
 
 
 
-
+def delete_all_customers():
+    with db.session.begin():  # Begin a new database session
+        try:
+            db.session.query(Customer).delete()  # Delete all records in the Customer table
+            db.session.commit()  # Commit the transaction
+            print("All customer records have been deleted.")
+        except Exception as e:
+            db.session.rollback()  # Rollback the transaction if there's an error
+            print(f"An error occurred: {e}")
 
 def add_customer(phone, username, address, surname, name, latitude=None, longitude=None):
     """Add a new customer to the database."""
@@ -22,10 +31,43 @@ def add_customer(phone, username, address, surname, name, latitude=None, longitu
     db.session.commit()
     return new_customer
 
+def add_customer_with_phone(phone):
+    customer = Customer(phone=phone, state="collecting_name")
+    db.session.add(customer)
+    db.session.commit()
+    return customer
+
+def update_customer_name(phone, name):
+    customer = Customer.query.filter_by(phone=phone).first()
+    if customer:
+        customer.name = name
+        customer.state = "collecting_username"
+        db.session.commit()
+    return customer
+
+def update_customer_username(phone, username):
+    customer = Customer.query.filter_by(phone=phone).first()
+    if customer:
+        customer.username = username
+        customer.state = "collecting_address"
+        db.session.commit()
+    return customer
+
+def update_customer_address(phone, address, latitude=None, longitude=None):
+    customer = Customer.query.filter_by(phone=phone).first()
+    if customer:
+        customer.address = address
+        customer.latitude = latitude
+        customer.longitude = longitude
+        customer.state = None  # Registration completed
+        db.session.commit()
+    return customer
+
 def get_customer_by_phone(phone):
     """Query a customer by phone number."""
     customer = Customer.query.filter_by(phone=phone).first()
     return customer
+
 
 def add_order(phone, delivery_address, total_amount, fruits_items, vegetables_items):
     """Add a new order with fruits and vegetables items."""

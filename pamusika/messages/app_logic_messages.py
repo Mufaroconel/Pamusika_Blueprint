@@ -3,15 +3,7 @@ def request_user_name(whatsapp, phone_number):
         to=phone_number,
         body=(
             "🏷️ Let's get you registered! Please provide the following details to complete your registration:\n\n"
-            "1. **Full Name**: Please reply with your full name."
-        ),
-    )
-
-def request_contact_number(whatsapp, phone_number):
-    whatsapp.send_text(
-        to=phone_number,
-        body=(
-            "📞 Great! Now, please provide your contact number."
+            "1. *Full Name*: Please reply with your full name."
         ),
     )
 
@@ -21,6 +13,62 @@ def request_address(whatsapp, phone_number):
         body=(
             "🏠 Finally, please provide your delivery address."
         ),
+    )
+
+def confirm_user_details(whatsapp, phone_number, name, address, ListSection, SectionRow):
+    whatsapp.send_interactive_list(
+        to=phone_number,
+        header="🔍 Confirm Your Details",
+        body=(
+            f"Hi {name},\n\n"
+            f"Please confirm that your details are correct:\n"
+            f"*Full Name*: {name}\n"
+            f"*Address*: {address}\n\n"
+            "If everything looks good, please select an option below to continue:\n"
+            "1. 🛒 *Confirm Registration*: Confirm your registration and proceed to place an order.\n"
+            "2. 📝 *Edit Details*: Update your name or address.\n"
+            "3. 🛠️ *Customer Support*: Get help from our support team."
+        ),
+        button="Select an Option",
+        sections=[
+            ListSection(
+                title="Your Next Steps",
+                rows=[
+                    SectionRow(id="confirm_user_details", title="Confirm", description="Confirm unser information."),
+                    SectionRow(id="edit_details", title="Edit Details", description="Update your name or address."),
+                    SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                ],
+            ),
+        ],
+        footer="#MufakoseHarvest #MagandangaDelights"
+    )
+
+def registration_successful(whatsapp, phone_number, ListSection, SectionRow):
+    whatsapp.send_interactive_list(
+        to=phone_number,
+        header="🥭 Welcome to Pamusika!",
+        body=(
+            "🎉 You have successfully registered an account with Pamusika! We're thrilled to have you with us. "
+            "Now, it's time to explore our offerings:\n\n"
+            "Discover the freshest fruits and vegetables, lovingly sourced from local farms. "
+            "Whether you're stocking up on your favorites or exploring new flavors, we have everything you need. "
+            "Order now and enjoy farm-fresh produce delivered right to your doorstep. 🥬🍅\n\n"
+            "Choose from our options below to get started:\n"
+            "1. 🛒 *Place an Order*: Fill your basket with the best fruits and vegetables.\n"
+            "2. 🚚 *Track Your Order*: Follow your order’s journey from our market to your home.\n"
+            "3. 🛠️ *Customer Support*: Need help? We're here for you."
+        ),
+        button="Select an Option",
+        sections=[
+            ListSection(
+                title="Your Next Steps",
+                rows=[
+                    SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
+                    SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
+                    SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                ],
+            ),
+        ],
     )
 
 
@@ -33,9 +81,9 @@ def greet_user_and_select_option(whatsapp, phone_number, ListSection, SectionRow
             "Whether you're stocking up on your favorites or exploring new flavors, we have everything you need. "
             "Order now and enjoy farm-fresh produce delivered right to your doorstep. 🥬🍅\n\n"
             "Choose from our options below to get started:\n"
-            "1. 🛒 **Place an Order**: Fill your basket with the best fruits and vegetables.\n"
-            "2. 🚚 **Track Your Order**: Follow your order’s journey from our market to your home.\n"
-            "3. 🛠️ **Customer Support**: Need help? We're here for you."
+            "1. 🛒 *Place an Order*: Fill your basket with the best fruits and vegetables.\n"
+            "2. 🚚 *Track Your Order*: Follow your order’s journey from our market to your home.\n"
+            "3. 🛠️ *Customer Support*: Need help? We're here for you."
         ),
         button="Select an Option",
         sections=[
@@ -55,7 +103,7 @@ def notify_user_about_support_model(whatsapp, phone_number, ListSection, Section
         to=phone_number,
         header="💬Customer Support!",
         body=(
-            "⚠️ **Please Note:**\n\n"
+            "⚠️ *Please Note:*\n\n"
             "Our customer support LLM model or agent is still under training, and we're continually working to improve its performance. "
             "We appreciate your understanding and patience as we strive to provide the best possible service.\n\n"
             "For any urgent issues, feel free to reach out to our human support team, who are always ready to assist you."
@@ -113,9 +161,9 @@ def confirm_order(whatsapp, phone_number, ListSection, SectionRow):
         body=(
             "You've selected your items and we're ready to proceed. 🌟\n\n"
             "Would you like to confirm your order, make changes, or cancel? Choose an option below to continue:\n"
-            "1. ✅ **Confirm Order**: Proceed with the current selection and finalize your purchase.\n"
-            "2. ✏️ **Make Changes**: Review and modify your order before finalizing.\n"
-            "3. ❌ **Cancel**: Abort the current order process and start over."
+            "1. ✅ *Confirm Order*: Proceed with the current selection and finalize your purchase.\n"
+            "2. ✏️ *Make Changes*: Review and modify your order before finalizing.\n"
+            "3. ❌ *Cancel*: Abort the current order process and start over."
         ),
         button="Select an Option",
         sections=[
@@ -139,8 +187,8 @@ def order_confirmed(whatsapp, phone_number, ListSection, SectionRow):
             "Congratulations! Your order has been successfully confirmed. 🛒🌟\n\n"
             "Our team is now preparing your fresh produce for delivery. 🚚🍅\n\n"
             "You can track your order’s journey or reach out to customer support for any assistance:\n\n"
-            "1. 🚚 **Track Your Order**: Stay updated on your order's progress.\n"
-            "2. 🛠️ **Customer Support**: Get help with any questions or concerns.\n\n"
+            "1. 🚚 *Track Your Order*: Stay updated on your order's progress.\n"
+            "2. 🛠️ *Customer Support*: Get help with any questions or concerns.\n\n"
             "Thank you for choosing Pamusika - your source of farm-fresh goodness! 🥭🥦"
         ),
         button="Select an Option",
@@ -377,9 +425,9 @@ def select_correct_option(whatsapp, phone_number, ListSection, SectionRow):
             "Whether you're stocking up on your favorites or exploring new flavors, we have everything you need. "
             "Order now and enjoy farm-fresh produce delivered right to your doorstep. 🥬🍅\n\n"
             "Choose from our options below to get started:\n"
-            "1. 🛒 **Place an Order**: Fill your basket with the best fruits and vegetables.\n"
-            "2. 🚚 **Track Your Order**: Follow your order’s journey from our market to your home.\n"
-            "3. 🛠️ **Customer Support**: Need help? We're here for you."
+            "1. 🛒 *Place an Order*: Fill your basket with the best fruits and vegetables.\n"
+            "2. 🚚 *Track Your Order*: Follow your order’s journey from our market to your home.\n"
+            "3. 🛠️ *Customer Support*: Need help? We're here for you."
         ),
         button="Select an Option",
         sections=[
