@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 from dboperations import add_customer, get_customer_by_phone, add_order, get_orders, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address
 from models import db, Customer, init_db, Order
-from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful
+from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 from flask_migrate import Migrate
 
@@ -123,6 +123,12 @@ class GroupAPI(MethodView):
                 update_customer_state(phone, None)
                 db.session.commit()
                 registration_successful(whatsapp, phone, ListSection, SectionRow)
+            elif user_choice == "user_profile":
+                with app.app_context():
+                    user = get_customer_by_phone(phone)
+                    name = user.name
+                    address = user.address
+                    send_user_profile(whatsapp, phone, name, address, ListSection, SectionRow)
             elif user_choice == "edit_details":
                 update_customer_state(phone, "collecting_name")
                 message_sent, res = request_user_name(whatsapp, phone)

@@ -28,6 +28,7 @@ def confirm_user_details(whatsapp, phone_number, name, address, ListSection, Sec
             "1. 🛒 *Confirm Registration*: Confirm your registration and proceed to place an order.\n"
             "2. 📝 *Edit Details*: Update your name or address.\n"
             "3. 🛠️ *Customer Support*: Get help from our support team."
+            "4. 🛠️ *Profile*: View and Edit Your Details"
         ),
         button="Select an Option",
         sections=[
@@ -37,6 +38,7 @@ def confirm_user_details(whatsapp, phone_number, name, address, ListSection, Sec
                     SectionRow(id="confirm_user_details", title="Confirm", description="Confirm unser information."),
                     SectionRow(id="edit_details", title="Edit Details", description="Update your name or address."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -57,6 +59,7 @@ def registration_successful(whatsapp, phone_number, ListSection, SectionRow):
             "1. 🛒 *Place an Order*: Fill your basket with the best fruits and vegetables.\n"
             "2. 🚚 *Track Your Order*: Follow your order’s journey from our market to your home.\n"
             "3. 🛠️ *Customer Support*: Need help? We're here for you."
+            "4. 🛠️ *Profile*: View and Edit Your Details"
         ),
         button="Select an Option",
         sections=[
@@ -66,6 +69,7 @@ def registration_successful(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -84,6 +88,7 @@ def greet_user_and_select_option(whatsapp, phone_number, ListSection, SectionRow
             "1. 🛒 *Place an Order*: Fill your basket with the best fruits and vegetables.\n"
             "2. 🚚 *Track Your Order*: Follow your order’s journey from our market to your home.\n"
             "3. 🛠️ *Customer Support*: Need help? We're here for you."
+            "4. 🛠️ *Profile*: View and Edit Your Details"
         ),
         button="Select an Option",
         sections=[
@@ -93,6 +98,7 @@ def greet_user_and_select_option(whatsapp, phone_number, ListSection, SectionRow
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -116,6 +122,7 @@ def notify_user_about_support_model(whatsapp, phone_number, ListSection, Section
                         SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                         SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                         SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                     ],
                 ),
             ],
@@ -187,8 +194,9 @@ def order_confirmed(whatsapp, phone_number, ListSection, SectionRow):
             "Congratulations! Your order has been successfully confirmed. 🛒🌟\n\n"
             "Our team is now preparing your fresh produce for delivery. 🚚🍅\n\n"
             "You can track your order’s journey or reach out to customer support for any assistance:\n\n"
-            "1. 🚚 *Track Your Order*: Stay updated on your order's progress.\n"
-            "2. 🛠️ *Customer Support*: Get help with any questions or concerns.\n\n"
+            "2. 🚚 *Track Your Order*: Stay updated on your order's progress.\n"
+            "3. 🛠️ *Customer Support*: Get help with any questions or concerns.\n\n"
+            "4. 🛠️ *Profile*: View and Edit Your Details"
             "Thank you for choosing Pamusika - your source of farm-fresh goodness! 🥭🥦"
         ),
         button="Select an Option",
@@ -199,6 +207,7 @@ def order_confirmed(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -250,6 +259,7 @@ def handle_cancellation(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -269,6 +279,7 @@ def sent_to_packaging(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -289,6 +300,7 @@ def packaging_received(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -308,6 +320,7 @@ def order_packed(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -328,6 +341,7 @@ def order_on_way(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -347,6 +361,7 @@ def order_delivered(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -371,6 +386,7 @@ def no_orders(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -390,6 +406,7 @@ def tracking_issue(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -409,6 +426,7 @@ def invalid_option(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
@@ -428,6 +446,7 @@ def select_correct_option(whatsapp, phone_number, ListSection, SectionRow):
             "1. 🛒 *Place an Order*: Fill your basket with the best fruits and vegetables.\n"
             "2. 🚚 *Track Your Order*: Follow your order’s journey from our market to your home.\n"
             "3. 🛠️ *Customer Support*: Need help? We're here for you."
+            "4. 🛠️ *Profile*: View and Edit Your Details"
         ),
         button="Select an Option",
         sections=[
@@ -437,10 +456,35 @@ def select_correct_option(whatsapp, phone_number, ListSection, SectionRow):
                     SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                     SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                     SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                    SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
                 ],
             ),
         ],
         footer="#MufakoseHarvest #MagandangaDelights"
     )
 
-
+def send_user_profile(whatsapp, phone_number, name, address, ListSection, SectionRow):
+    whatsapp.send_interactive_list(
+        to=phone_number,
+        header="🛠️ Your Profile",
+        body=(
+            f"Hi {name},\n\n"
+            f"Here are your current details:\n"
+            f"*Full Name*: {name}\n"
+            f"*Address*: {address}\n\n"
+            "What would you like to do next?"
+        ),
+        button="Choose an Option",
+        sections=[
+            ListSection(
+                title="Profile Actions",
+                rows=[
+                    SectionRow(id="edit_details", title="Edit Details", description="Update your name or address."),
+                    SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
+                    SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
+                    SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                ],
+            ),
+        ],
+        footer="#MufakoseHarvest #MagandangaDelights"
+    )
