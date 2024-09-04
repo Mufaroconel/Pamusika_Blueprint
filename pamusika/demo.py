@@ -23,7 +23,7 @@ image_url = "https://images.unsplash.com/photo-1622618760546-8e443f8a909b?ixlib=
 
 
 
-greet_user_and_select_option(whatsapp, phone_number, ListSection, SectionRow)
+# greet_user_and_select_option(whatsapp, phone_number, ListSection, SectionRow)
 send_catalog(phone_number, catalog_id, whatsapp, CatalogSection)
 # confirm_order(whatsapp, phone_number, ListSection, SectionRow)
 # order_confirmed(whatsapp, phone_number, ListSection, SectionRow)

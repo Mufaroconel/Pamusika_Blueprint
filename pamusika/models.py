@@ -24,11 +24,12 @@ class Product(db.Model):
     name = db.Column(db.String(255), nullable=False)
     price = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(3), nullable=False, default='USD')
-    availability = db.Column(db.Boolean, nullable=False, default=True) 
+    availability = db.Column(db.Boolean, nullable=False, default=True)
+    product_category = db.Column(db.String(100), nullable=False)  # New category column
 
     def __repr__(self):
-        return f'<Product {self.name} - Meta ID: {self.meta_id} - Price: {self.price} {self.currency} - Available: {self.availability}>'
-    
+        return f'<Product {self.name} - Category: {self.product_category} - Meta ID: {self.meta_id} - Price: {self.price} {self.currency} - Available: {self.availability}>'
+
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)  # Assuming you have a Customer table
@@ -68,4 +69,3 @@ order_products = db.Table('order_products',
 def init_db(app):
         with app.app_context():
             db.create_all()
-

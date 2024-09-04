@@ -211,3 +211,58 @@ def query_orders(order_id=None, customer_id=None, status=None):
         query = query.filter_by(status=status)
     
     return query.all()
+
+def add_product(id, meta_id, name, price, product_category, currency='USD', availability=True):
+    """
+    Add a new product to the Product table.
+
+    :param id: Internal product ID (string)
+    :param meta_id: Meta-specific ID for referencing (string)
+    :param name: Name of the product (string)
+    :param price: Price of the product (float)
+    :param product_category: Category of the product (string)
+    :param currency: Currency of the price (string, default 'USD')
+    :param availability: Availability status (boolean, default True)
+    """
+    # Create a new Product instance with the given parameters
+    new_product = Product(
+        id=id,
+        meta_id=meta_id,
+        name=name,
+        price=price,
+        product_category=product_category,
+        currency=currency,
+        availability=availability
+    )
+    
+    # Add the new product to the session and commit the transaction
+    db.session.add(new_product)
+    db.session.commit()
+
+    return new_product
+
+def get_products():
+    """
+    Retrieve all products from the Product table.
+    
+    :return: List of products
+    """
+    # Query the Product table for all records
+    products = Product.query.all()
+    return products
+
+def get_product_name_and_category(meta_id):
+    """
+    Returns the product name and product category based on the meta_id.
+
+    :param meta_id: The meta_id of the product (string)
+    :return: A tuple containing the product name and category, or None if the product is not found
+    """
+    # Query the Product table to find the product with the given meta_id
+    name_category = Product.query.filter_by(meta_id=meta_id).first()
+    
+    if name_category:
+        return name_category
+    else:
+        return None
+

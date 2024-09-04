@@ -5,7 +5,7 @@ from wa_cloud_py import WhatsApp
 from wa_cloud_py.message_types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
 from dotenv import load_dotenv
 import os
-from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address
+from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category
 from models import db, Customer, init_db, Order
 from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
@@ -17,7 +17,7 @@ phone_id = os.getenv("PHONE_ID")
 verify_token = os.getenv("VERIFY_TOKEN")
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///msika.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mumusika.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
 
@@ -44,8 +44,12 @@ def index():
     # users section
     users = Customer.query.all()
     total_users = len(users)
-    return render_template("dashboard.html", orders=orders, users = users, total_users=total_users)
+
+    # products section
+    products = get_products()
+    return render_template("dashboard.html", orders=orders, users = users, total_users=total_users, products = products)
     
+
 
 whatsapp = WhatsApp(access_token=wa_access_token, phone_number_id=phone_id)
 
@@ -157,18 +161,19 @@ class GroupAPI(MethodView):
                 # Calculate the total for this product
                 item_total = product.price * product.quantity
                 total_amount += item_total
+                category_id = product.id
+                with app.app_context():
+                    name_category = get_product_name_and_category(category_id)
                 
-                # Determine whether the product is a fruit or vegetable (example logic)
-                # This logic needs to be adjusted based on how you categorize fruits and vegetables
-                if 'fruit' in product.id:  # Example condition
+                if name_category.product_category == 'Fruit':
                     fruits_items.append({
-                        "id": product.id,
+                        "product": name_category.name,
                         "quantity": product.quantity,
                         "price": product.price
                     })
-                elif 'vegetable' in product.id:  # Example condition
+                elif name_category.product_category == 'Vegetable':
                     vegetables_items.append({
-                        "id": product.id,
+                        "product": name_category.name,
                         "quantity": product.quantity,
                         "price": product.price
                     })

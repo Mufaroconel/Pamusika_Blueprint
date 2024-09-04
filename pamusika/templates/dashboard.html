@@ -206,24 +206,29 @@
                                 <tr>
                                     <th>Product ID</th>
                                     <th>Name</th>
+                                    <th>Category</th> <!-- Added Category Column -->
                                     <th>Price</th>
-                                    <th>Stock</th>
+                                    <th>Currency</th>
+                                    <th>Availability</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Loop through products here -->
+                                {% for product in products %}
                                 <tr>
-                                    <td>98765</td>
-                                    <td>Tomatoes</td>
-                                    <td>$1.50/kg</td>
-                                    <td>120</td>
+                                    <td>{{ product.id }}</td>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.product_category }}</td> <!-- Display Category -->
+                                    <td>${{ product.price }}</td>
+                                    <td>{{ product.currency }}</td>
+                                    <td>{{ 'In Stock' if product.availability else 'Out of Stock' }}</td>
                                     <td>
                                         <button class="btn btn-primary btn-sm">Edit</button>
                                         <button class="btn btn-danger btn-sm">Delete</button>
                                     </td>
                                 </tr>
-                                <!-- More products... -->
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>

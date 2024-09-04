@@ -163,9 +163,8 @@ def send_catalog(phone_number, catalog_id, whatsapp, CatalogSection):
     
 def confirm_order(whatsapp, phone_number, ListSection, SectionRow, total_amount, fruits_items, vegetables_items, product_quantities, customer_id, delivery_address):
     # Convert lists of items into formatted strings
-    fruits_items_str = "\n".join([f"ID: {item['id']}, Quantity: {item['quantity']}, Price: {item['price']}" for item in fruits_items])
-    vegetables_items_str = "\n".join([f"ID: {item['id']}, Quantity: {item['quantity']}, Price: {item['price']}" for item in vegetables_items])
-    product_quantities_str = "\n".join([f"Product ID: {prod_id}, Quantity: {quantity}" for prod_id, quantity in product_quantities])
+    fruits_items_str = "\n".join([f"Product: {item['product']}, Quantity: {item['quantity']}, Price: {item['price']}" for item in fruits_items])
+    vegetables_items_str = "\n".join([f"Product: {item['product']}, Quantity: {item['quantity']}, Price: {item['price']}" for item in vegetables_items])
 
     whatsapp.send_interactive_list(
         to=phone_number,
@@ -177,7 +176,6 @@ def confirm_order(whatsapp, phone_number, ListSection, SectionRow, total_amount,
             f"Delivery Address: {delivery_address}\n\n"
             f"Fruits Items:\n{fruits_items_str}\n\n"
             f"Vegetables Items:\n{vegetables_items_str}\n\n"
-            f"Product Quantities:\n{product_quantities_str}\n\n"
             "Would you like to confirm your order, make changes, or cancel? Choose an option below to continue:\n"
             "1. ✅ *Confirm Order*: Proceed with the current selection and finalize your purchase.\n"
             "2. ✏️ *Make Changes*: Review and modify your order before finalizing.\n"
