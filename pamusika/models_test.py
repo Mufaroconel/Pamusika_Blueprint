@@ -1,10 +1,11 @@
-from dboperations import add_customer, get_customer_by_phone, add_order, get_orders, update_order_status, get_all_orders, get_filtered_orders, user_exists, delete_all_customers
-from models import db, Customer, init_db, Order
+from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, delete_all_customers,query_orders
+from models import db, Customer, init_db, Order, order_products
 from flask import Flask, request, jsonify, render_template
 from flask_migrate import Migrate
+import json
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///musika.db'  # Use SQLite for simplicity
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///msika.db'  # Use SQLite for simplicity
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
 
@@ -13,29 +14,47 @@ db.init_app(app)
 migrate = Migrate(app, db)
 # user information
 
-phone = "263776681617"
-username = "Muhhfnna"
-address = "6dsbb9nnn Jirewi Cfsfreascent Mufakose, Harare"
-surname = "Nyehhwakudyfdsa"
-name = "Mfdswebbjufaro"
-
-# order information
-# usage in a view function or script
+# Example data for the order
+customer_id = 1
+total_amount = 75.0
+delivery_address = "123 Main St, Springfield"
 fruits_items = [
-    {"item_name": "Apples", "quantity": 3, "price": 1.50},
-    {"item_name": "Bananas", "quantity": 6, "price": 2.00}
+    {"id": "apple", "quantity": 5, "price": 0.5},
+    {"id": "banana", "quantity": 10, "price": 0.2},
 ]
-
 vegetables_items = [
-    {"item_name": "Carrots", "quantity": 2, "price": 1.20},
-    {"item_name": "Spinach", "quantity": 1, "price": 2.50}
+    {"id": "carrot", "quantity": 7, "price": 0.3},
+    {"id": "broccoli", "quantity": 3, "price": 1.5},
 ]
-delivery_address = "69 Jiri Crescent Mufakose Harare"
-total_amount = 6.20
-
+product_quantities = [
+    ("product_id_1", 2),
+    ("product_id_2", 5),
+]
 
 with app.app_context():
-    delete_all_customers()
+    new_order = add_order(
+    db=db,
+    customer_id=customer_id,
+    total_amount=total_amount,
+    delivery_address=delivery_address,
+    fruits_items=fruits_items,
+    vegetables_items=vegetables_items,
+    product_quantities=product_quantities
+    )
+    if new_order:
+        print(f"Order created with ID: {customer_id}")
+
+    # orders = query_orders(customer_id=1, status="Sent to Packaging")
+    # for order in orders:
+    #     fruits_items_json = order.fruits_items
+    #     fruits_items = json.loads(fruits_items_json)
+    #     for item in fruits_items:
+    #         product_id = item['id']
+    #         quantity = item['quantity']
+    #         price = item['price']
+    #     print(f"{order} {order.total_amount}")
+
+    # delete_all_customers()
     # user_exist = get_customer_by_phone(phone)
     # print(f"Does the user with phone number {user_exist.phone} and name {user_exist.name} exist? {'Yes' if user_exist else 'No'}")
 
