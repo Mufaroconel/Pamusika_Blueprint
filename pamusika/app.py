@@ -5,9 +5,9 @@ from wa_cloud_py import WhatsApp
 from wa_cloud_py.message_types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
 from dotenv import load_dotenv
 import os
-from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category
+from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category, delete_last_order_by_phone
 from models import db, Customer, init_db, Order
-from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile
+from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 from flask_migrate import Migrate
 
@@ -17,7 +17,7 @@ phone_id = os.getenv("PHONE_ID")
 verify_token = os.getenv("VERIFY_TOKEN")
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mumusika.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///msikadatabase.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
 
@@ -49,8 +49,6 @@ def index():
     products = get_products()
     return render_template("dashboard.html", orders=orders, users = users, total_users=total_users, products = products)
     
-
-
 whatsapp = WhatsApp(access_token=wa_access_token, phone_number_id=phone_id)
 
 def update_customer_state(phone, state):
@@ -93,11 +91,19 @@ class GroupAPI(MethodView):
                     if not user:
                         add_customer_with_phone(phone)
                         update_customer_state(phone, "collecting_name")
-                        message_sent, res = request_user_name(whatsapp, phone)
+                        result = request_user_name(whatsapp, phone)
+                        if result :
+                            message_sent, res = result
+                        else :
+                            message_sent, res = None
                     elif user.state == "collecting_name":
                         user.name = message.body
                         update_customer_state(phone, "collecting_address")
-                        message_sent, res = request_address(whatsapp, phone)
+                        result = request_address(whatsapp, phone)
+                        if result :
+                            message_sent, res = result
+                        else :
+                            message_sent, res = None
                     elif user.state == "collecting_address":
                         user.address = message.body
                         update_customer_state(phone, "confirming_user_profile")
@@ -105,7 +111,11 @@ class GroupAPI(MethodView):
                         address = user.address
                         message_sent, res = confirm_user_details(whatsapp, phone, name, address, ListSection, SectionRow)
                     else:
-                        message_sent, res = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
+                        result = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
+                        if result :
+                            message_sent, res = result
+                        else :
+                            message_sent, res = None
                                
         if isinstance(message, InteractiveListMessage):
             user_choice = message.reply_id
@@ -121,9 +131,24 @@ class GroupAPI(MethodView):
                     send_user_profile(whatsapp, phone, name, address, ListSection, SectionRow)
             elif user_choice == "edit_details":
                 update_customer_state(phone, "collecting_name")
-                message_sent, res = request_user_name(whatsapp, phone)
+                result = request_user_name(whatsapp, phone)
+                if result :
+                    message_sent, res = result
+                else :
+                    message_sent, res = None
             elif user_choice == "place_order":
-                message_sent, res = send_catalog(phone, catalog_id, whatsapp, CatalogSection)
+                result = send_catalog(phone, catalog_id, whatsapp, CatalogSection)
+                if result:
+                    message_sent, res = result
+                else :
+                    message_sent, res = None
+            elif user_choice == "cancel_order" :
+                delete_last_order_by_phone(phone)
+                result = order_cancelled(whatsapp, phone, ListSection, SectionRow)
+                if result :
+                   message_sent, res = result
+                else :
+                    message_sent, res = None
             elif user_choice == "track_order":
                 with app.app_context():
                     orders = get_orders(phone)  
@@ -143,53 +168,76 @@ class GroupAPI(MethodView):
                         message_sent, res = no_orders(whatsapp, phone, ListSection, SectionRow)
             elif user_choice == "customer_support":
                 message_sent, res = notify_user_about_support_model(whatsapp, phone, ListSection, SectionRow)
+
         elif isinstance(message, OrderMessage):
-              products = message.products
-              # from db get cusstomer id, delivery address
+            products = message.products
+            # from db get cusstomer id, delivery address
+            with app.app_context():
+                customer = get_customer_by_phone(phone)
+                customer_id = customer.id
+                delivery_address = customer.address
+            # from order message get total_amount, fruit_items
+            #   '' vegetable items, product items
+            total_amount = 0.0
+            fruits_items = []
+            vegetables_items = []
+            product_quantities = []
+
+            for product in products:
+              # Calculate the total for this product
+              item_total = product.price * product.quantity
+              total_amount += item_total
+              category_id = product.id
               with app.app_context():
-                  customer = get_customer_by_phone(phone)
-                  customer_id = customer.id
-                  delivery_address = customer.address
-              # from order message get total_amount, fruit_items
-              #   '' vegetable items, product items
-              total_amount = 0.0
-              fruits_items = []
-              vegetables_items = []
-              product_quantities = []
+                  name_category = get_product_name_and_category(category_id)
+              if name_category is not None :
+                  if name_category.product_category == 'Fruit':
+                      fruits_items.append({
+                          "product": name_category.name,
+                          "quantity": product.quantity,
+                          "price": product.price
+                      })
+                  elif name_category.product_category == 'Vegetable':
+                      vegetables_items.append({
+                          "product": name_category.name,
+                          "quantity": product.quantity,
+                          "price": product.price
+                      })
+              
+              # Add to product_quantities
+              product_quantities.append((product.id, product.quantity))
+            with app.app_context():
+                def execute_order():
+                    add_order(
+                        db=db,
+                        customer_id=customer_id,
+                        total_amount=total_amount,
+                        delivery_address=delivery_address,
+                        fruits_items=fruits_items,
+                        vegetables_items=vegetables_items,
+                        product_quantities=product_quantities
+                        )
+                execute_order()
+                result = confirm_order(whatsapp, phone, ListSection, SectionRow, total_amount, fruits_items, vegetables_items, product_quantities, customer_id, delivery_address )
+                if result:
+                    message_sent, res = result
+                else :
+                    message_sent, res = None
 
-              for product in products:
-                # Calculate the total for this product
-                item_total = product.price * product.quantity
-                total_amount += item_total
-                category_id = product.id
-                with app.app_context():
-                    name_category = get_product_name_and_category(category_id)
-                
-                if name_category.product_category == 'Fruit':
-                    fruits_items.append({
-                        "product": name_category.name,
-                        "quantity": product.quantity,
-                        "price": product.price
-                    })
-                elif name_category.product_category == 'Vegetable':
-                    vegetables_items.append({
-                        "product": name_category.name,
-                        "quantity": product.quantity,
-                        "price": product.price
-                    })
-                
-                # Add to product_quantities
-                product_quantities.append((product.id, product.quantity))
-
-              message_sent, res = confirm_order(whatsapp, phone, ListSection, SectionRow, total_amount, fruits_items, vegetables_items, product_quantities, customer_id, delivery_address )
         elif isinstance(message, MessageStatus):
             print(message)
             pass
     
         else:
              print("Unsupported message type")
-        return "", 200
 
+        if isinstance(message, InteractiveListMessage):
+            user_choice = message.reply_id
+            if user_choice == "confirm_order":
+                order_confirmed(whatsapp, phone, ListSection, SectionRow)
+        return "", 200
+    
+        
 app.add_url_rule('/webhook', view_func=GroupAPI.as_view('wa_webhook'))
 
 if __name__ == "__main__":

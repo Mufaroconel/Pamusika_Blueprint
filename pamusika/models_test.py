@@ -1,11 +1,11 @@
-from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, delete_all_customers,query_orders, add_product
+from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, delete_all_customers,query_orders, add_product, get_product_name_and_category, delete_all_orders, delete_last_order_by_phone
 from models import db, Customer, init_db, Order, order_products
 from flask import Flask, request, jsonify, render_template
 from flask_migrate import Migrate
 import json
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mumusika.db'  # Use SQLite for simplicity
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///msikadatabase.db'  # Use SQLite for simplicity
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
 
@@ -30,35 +30,40 @@ product_quantities = [
     ("product_id_1", 2),
     ("product_id_2", 5),
 ]
-
+category_id = "smdx1imjv1"
+phone = "263776681617"
 with app.app_context():
-
-    # Assuming the add_product function and Product model are already defined
+    # delete_last_order_by_phone(phone)
+    # delete_all_orders()
+    # name_category = get_product_name_and_category(category_id)
+    # print(name_category.product_category)
+    # Assuming the add_product function and
+    #  Product model are already defined
 
 # Adding multiple products to the database
-    products = [
-    {"id": "orange01", "meta_id": "smdx1imjv1", "name": "Orange🍊", "price": 0.25, "product_category": "Fruit"},
-    {"id": "pineapple01", "meta_id": "yv12oorgoj", "name": "Pineapple🍍", "price": 0.50, "product_category": "Fruit"},
-    {"id": "tomato01", "meta_id": "0oyglqcnhr", "name": "Tomato🍅", "price": 0.50, "product_category": "Vegetable"},
-    {"id": "carrot01", "meta_id": "aqs54sejq9", "name": "Carrot🥕", "price": 0.50, "product_category": "Vegetable"},
-    {"id": "rape01", "meta_id": "ixxuzk2ll2", "name": "Rape🥬", "price": 0.20, "product_category": "Vegetable"},
-    {"id": "cabbage01", "meta_id": "rq7l4wd0vr", "name": "Cabbage🥬", "price": 0.50, "product_category": "Vegetable"},
-    {"id": "banana01", "meta_id": "19tdnzbn2k", "name": "Banana🍌", "price": 0.10, "product_category": "Fruit"},
-    {"id": "covo01", "meta_id": "kaif9wtpmq", "name": "Covo🥦", "price": 0.20, "product_category": "Vegetable"},
-    {"id": "greenpepper01", "meta_id": "4jenulsjmg", "name": "Green Pepper🫑", "price": 0.20, "product_category": "Vegetable"},
-    {"id": "onion01", "meta_id": "p95w970hrf", "name": "Onion🧅", "price": 0.50, "product_category": "Vegetable"},
-]
+#     products = [
+#     {"id": "orange01", "meta_id": "smdx1imjv1", "name": "Orange🍊", "price": 0.25, "product_category": "Fruit"},
+#     {"id": "pineapple01", "meta_id": "yv12oorgoj", "name": "Pineapple🍍", "price": 0.50, "product_category": "Fruit"},
+#     {"id": "tomato01", "meta_id": "0oyglqcnhr", "name": "Tomato🍅", "price": 0.50, "product_category": "Vegetable"},
+#     {"id": "carrot01", "meta_id": "aqs54sejq9", "name": "Carrot🥕", "price": 0.50, "product_category": "Vegetable"},
+#     {"id": "rape01", "meta_id": "ixxuzk2ll2", "name": "Rape🥬", "price": 0.20, "product_category": "Vegetable"},
+#     {"id": "cabbage01", "meta_id": "rq7l4wd0vr", "name": "Cabbage🥬", "price": 0.50, "product_category": "Vegetable"},
+#     {"id": "banana01", "meta_id": "19tdnzbn2k", "name": "Banana🍌", "price": 0.10, "product_category": "Fruit"},
+#     {"id": "covo01", "meta_id": "kaif9wtpmq", "name": "Covo🥦", "price": 0.20, "product_category": "Vegetable"},
+#     {"id": "greenpepper01", "meta_id": "4jenulsjmg", "name": "Green Pepper🫑", "price": 0.20, "product_category": "Vegetable"},
+#     {"id": "onion01", "meta_id": "p95w970hrf", "name": "Onion🧅", "price": 0.50, "product_category": "Vegetable"},
+# ]
 
 
-    for product in products:
-        add_product(
-            id=product["id"],
-            meta_id=product["meta_id"],
-            name=product["name"],
-            price=product["price"],
-            product_category=product["product_category"]  # Pass the category to the function
-        )
-        print(f"Added product: {product['name']} - Category: {product['product_category']}")
+#     for product in products:
+#         add_product(
+#             id=product["id"],
+#             meta_id=product["meta_id"],
+#             name=product["name"],
+#             price=product["price"],
+#             product_category=product["product_category"]  # Pass the category to the function
+#         )
+#         print(f"Added product: {product['name']} - Category: {product['product_category']}")
 
 
     # new_order = add_order(
