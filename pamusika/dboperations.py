@@ -4,6 +4,7 @@ from models import Customer, Order, order_products, Product
 # from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import aliased
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import delete
 
 def delete_all_customers():
     with db.session.begin():  # Begin a new database session
@@ -82,7 +83,7 @@ def update_order_status(order_id, new_status):
     """Update the status of an order."""
     
     # Ensure the new status is valid
-    valid_statuses = ["Packaging received", "Packed", "Sent for delivery", "Delivered"]
+    valid_statuses = ["Packaging received", "Packed", "Sent for delivery", "Delivered", "Cancelled"]
     
     if new_status not in valid_statuses:
         raise ValueError(f"Invalid status: {new_status}. Must be one of {valid_statuses}.")
@@ -259,35 +260,68 @@ def get_product_name_and_category(meta_id):
     else:
         return None
 
-
-def delete_last_order_by_phone(phone_number):
+def cancel_last_order_by_phone(phone):
     try:
-        customer = Customer.query.filter_by(phone=phone_number).first()
+        # Find the customer by phone number
+        customer = Customer.query.filter_by(phone=phone).first()
         if not customer:
             print("Customer not found.")
             return
 
+        # Get the customer ID
         customer_id = customer.id
 
+        # Find the last order for the customer, sorted by the latest order date
         last_order = Order.query.filter_by(customer_id=customer_id).order_by(Order.order_date.desc()).first()
         if not last_order:
             print("No orders found for this customer.")
             return
 
-        # Delete order products
-        order_products_to_delete = db.session.query(order_products).filter_by(order_id=last_order.id).all()
-        for order_product in order_products_to_delete:
-            db.session.delete(order_product)
+        # Update the order status to "Cancelled"
+        last_order.status = "Cancelled"
 
-        # Delete the order
-        db.session.delete(last_order)
+        # Commit the update to the database
         db.session.commit()
-        print("Last order deleted successfully.")
+
+        print("Last order status updated to 'Cancelled' successfully.")
 
     except SQLAlchemyError as e:
+        # Roll back the session if there's an error
         print(f"An error occurred: {e}")
         db.session.rollback()
-        
+
+def get_active_orders_by_phone(phone):
+    """Fetch all orders where the status is neither 'Cancelled' nor 'Delivered'."""
+    try:
+        # Find the customer by phone number
+        customer = Customer.query.filter_by(phone=phone).first()
+        if not customer:
+            print("customer not found")
+            return "Customer not found."
+        else :
+            print("customer found")
+        # Get the customer ID
+        customer_id = customer.id
+
+        # Retrieve all orders for this customer where status is not 'Cancelled' or 'Delivered'
+        active_orders = Order.query.filter(
+            Order.customer_id == customer_id,
+            Order.status.notin_(["Cancelled", "Delivered"])
+        ).order_by(Order.order_date.desc()).all()
+
+        if not active_orders:
+            print("no orders found")
+            return "No active orders found for this customer."
+        else :
+            print("orders found")
+        # Return the list of active orders
+        return active_orders
+
+    except SQLAlchemyError as e:
+        # Handle the database error
+        print(f"An error occurred: {e}")
+        return "An error occurred while fetching the active orders."
+
 def delete_all_orders():
     """
     Delete all records from the Order table.
@@ -307,3 +341,13 @@ def delete_all_orders():
         db.session.rollback()  # Rollback if something goes wrong
         print(f"Error deleting orders: {e}")
 
+def delete_all_order_products():
+    """Deletes all rows from the order_products table."""
+    try:
+        # Create the delete statement for the 'order_products' table
+        db.session.execute(delete(order_products))
+        db.session.commit()  # Commit the transaction to apply the changes
+        print("All rows deleted successfully from the order_products table.")
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of any error
+        print(f"Error occurred while deleting rows: {str(e)}")

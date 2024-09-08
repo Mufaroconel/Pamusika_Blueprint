@@ -1,11 +1,11 @@
-from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, delete_all_customers,query_orders, add_product, get_product_name_and_category, delete_all_orders, delete_last_order_by_phone
+from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, delete_all_customers,query_orders, add_product, get_product_name_and_category, delete_all_orders, cancel_last_order_by_phone, get_active_orders_by_phone,delete_all_order_products
 from models import db, Customer, init_db, Order, order_products
 from flask import Flask, request, jsonify, render_template
 from flask_migrate import Migrate
 import json
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///msikadatabase.db'  # Use SQLite for simplicity
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mmsikadatabase.db'  # Use SQLite for simplicity
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
 
@@ -31,9 +31,16 @@ product_quantities = [
     ("product_id_2", 5),
 ]
 category_id = "smdx1imjv1"
-phone = "263776681617"
+phone = "263773485283"
 with app.app_context():
+    get_active_orders_by_phone(phone)
+
+    # for order in orders :    
+    #     print(order.status)
+
+    # cancel_last_order_by_phone(phone)
     # delete_last_order_by_phone(phone)
+    # delete_all_order_products()
     # delete_all_orders()
     # name_category = get_product_name_and_category(category_id)
     # print(name_category.product_category)

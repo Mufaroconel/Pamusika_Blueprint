@@ -5,7 +5,7 @@ from wa_cloud_py import WhatsApp
 from wa_cloud_py.message_types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
 from dotenv import load_dotenv
 import os
-from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category, delete_last_order_by_phone
+from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category, cancel_last_order_by_phone, get_active_orders_by_phone
 from models import db, Customer, init_db, Order
 from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
@@ -17,7 +17,7 @@ phone_id = os.getenv("PHONE_ID")
 verify_token = os.getenv("VERIFY_TOKEN")
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///msikadatabase.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mmsikadatabase.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
 
@@ -142,30 +142,54 @@ class GroupAPI(MethodView):
                     message_sent, res = result
                 else :
                     message_sent, res = None
-            elif user_choice == "cancel_order" :
-                delete_last_order_by_phone(phone)
-                result = order_cancelled(whatsapp, phone, ListSection, SectionRow)
-                if result :
-                   message_sent, res = result
-                else :
-                    message_sent, res = None
+            elif user_choice == "cancel_order":
+                # Update the order status to cancelled
+                cancel_order = cancel_last_order_by_phone(phone)
+                
+                if cancel_order:  # Now this will be True if the cancellation was successful
+                    result = order_cancelled(whatsapp, phone, ListSection, SectionRow)
+                    if result:
+                        message_sent, res = result
+                    else:
+                        message_sent, res = None
+                else:
+                    print("Cancellation failed or no order to cancel.")
+
             elif user_choice == "track_order":
                 with app.app_context():
-                    orders = get_orders(phone)  
-                    if orders :
-                        # for order in orders:
-                        order_status = orders.status
-                        if order_status == "Sent to Packaging":
-                            message_sent, res = sent_to_packaging(whatsapp, phone, ListSection, SectionRow)
-                        elif order_status == "Packaging received":
-                            message_sent, res = packaging_received(whatsapp, phone, ListSection, SectionRow)
-                        elif order_status == "Packed":
-                            message_sent, res = order_packed(whatsapp, phone, ListSection, SectionRow)
-                        elif order_status == "Sent for delivery":
-                            message_sent, res = order_on_way(whatsapp, phone, ListSection, SectionRow)
-                    
-                    else:
-                        message_sent, res = no_orders(whatsapp, phone, ListSection, SectionRow)
+                    orders = get_active_orders_by_phone(phone)
+
+                    if not orders:
+                        result = no_orders(whatsapp, phone, ListSection, SectionRow)
+                        if result:
+                            message_sent, res = result
+                        else :
+                            message_sent, res = None
+                    else :
+                        try:
+                            # Check if 'orders' is iterable
+                            for order in orders:
+                                order_status = order.status
+                                if order_status == "Sent to Packaging":
+                                    message_sent, res = sent_to_packaging(whatsapp, phone, order, ListSection, SectionRow)
+                                elif order_status == "Packaging received":
+                                    message_sent, res = packaging_received(whatsapp, phone, order, ListSection, SectionRow)
+                                elif order_status == "Packed":
+                                    message_sent, res = order_packed(whatsapp, phone, order, ListSection, SectionRow)
+                                elif order_status == "Sent for delivery":
+                                    message_sent, res = order_on_way(whatsapp, phone, order, ListSection, SectionRow)
+
+                        except TypeError:
+                            # Handle the case where 'orders' is not iterable (e.g., it's a single order)
+                            order_status = orders.status  # Assuming it's a single order object
+                            if order_status == "Sent to Packaging":
+                                message_sent, res = sent_to_packaging(whatsapp, phone, order, ListSection, SectionRow)
+                            elif order_status == "Packaging received":
+                                message_sent, res = packaging_received(whatsapp, phone, order, ListSection, SectionRow)
+                            elif order_status == "Packed":
+                                message_sent, res = order_packed(whatsapp, phone, order, ListSection, SectionRow)
+                            elif order_status == "Sent for delivery":
+                                message_sent, res = order_on_way(whatsapp, phone, order, ListSection, SectionRow)
             elif user_choice == "customer_support":
                 message_sent, res = notify_user_about_support_model(whatsapp, phone, ListSection, SectionRow)
 

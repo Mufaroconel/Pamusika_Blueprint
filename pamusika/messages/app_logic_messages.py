@@ -366,12 +366,35 @@ def handle_cancellation(whatsapp, phone_number, ListSection, SectionRow):
     except Exception as e:
         return False, f"Failed to send cancellation message: {str(e)}"
 
-def sent_to_packaging(whatsapp, phone_number, ListSection, SectionRow):
+import json
+
+def format_items(items):
+    """Helper function to format items for display."""
+    formatted_items = ""
+    for item in items:
+        formatted_items += f"{item['product']} (x{item['quantity']}) - ${item['price'] * item['quantity']}\n"
+    return formatted_items.strip()
+
+def sent_to_packaging(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
+        # Decode fruits and vegetables from JSON
+        fruits = json.loads(order.fruits_items)
+        vegetables = json.loads(order.vegetables_items)
+
+        # Format the items
+        fruits_formatted = format_items(fruits)
+        vegetables_formatted = format_items(vegetables)
+
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
-            body="📦 Your order is currently being sent to packaging. It will be on its way soon! 🚚",
+            body=(
+                f"📦 Your order (ID: {order.id}) currently being sent to packaging. It will be on its way soon! 🚚\n\n"
+                f"🧾 *Total Amount*: ${order.total_amount}\n"
+                f"📅 *Order Date*: {order.order_date}\n"
+                f"🍎 *Fruits*:\n{fruits_formatted or 'No fruits ordered'}\n"
+                f"🥦 *Vegetables*:\n{vegetables_formatted or 'No vegetables ordered'}"
+            ),
             button="Select an Option",
             sections=[
                 ListSection(
@@ -391,12 +414,21 @@ def sent_to_packaging(whatsapp, phone_number, ListSection, SectionRow):
         return False, f"Failed to send packaging status message: {str(e)}"
 
 
-def packaging_received(whatsapp, phone_number, ListSection, SectionRow):
+def packaging_received(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
+        # Format fruits and vegetables
+        fruits = format_items(order.fruits_items) if order.fruits_items else "No fruits"
+        vegetables = format_items(order.vegetables_items) if order.vegetables_items else "No vegetables"
+        
+        # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
-            body="🎉 Good news! Your order has been received by packaging. 🛠️",
+            body=f"🎉 Good news! Your order (ID: {order.order_id}) has been received by packaging. 🛠️\n\n"
+                 f"🧾 *Total Amount*: ${order.total_amount}\n"
+                 f"📅 *Order Date*: {order.order_date}\n"
+                 f"🍎 *Fruits*: {fruits}\n"
+                 f"🥦 *Vegetables*: {vegetables}",
             button="Select an Option",
             sections=[
                 ListSection(
@@ -415,12 +447,22 @@ def packaging_received(whatsapp, phone_number, ListSection, SectionRow):
     except Exception as e:
         return False, f"Failed to send packaging received message: {str(e)}"
 
-def order_packed(whatsapp, phone_number, ListSection, SectionRow):
+
+def order_packed(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
+        # Format fruits and vegetables
+        fruits = format_items(order.fruits_items) if order.fruits_items else "No fruits"
+        vegetables = format_items(order.vegetables_items) if order.vegetables_items else "No vegetables"
+        
+        # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
-            body="📦 Your order is packed and ready for delivery. Hang tight! 🚚",
+            body=f"📦 Your order (ID: {order.order_id}) is packed and ready for delivery. Hang tight! 🚚\n\n"
+                 f"🧾 *Total Amount*: ${order.total_amount}\n"
+                 f"📅 *Order Date*: {order.order_date}\n"
+                 f"🍎 *Fruits*: {fruits}\n"
+                 f"🥦 *Vegetables*: {vegetables}",
             button="Select an Option",
             sections=[
                 ListSection(
@@ -439,12 +481,22 @@ def order_packed(whatsapp, phone_number, ListSection, SectionRow):
     except Exception as e:
         return False, f"Failed to send packed order message: {str(e)}"
 
-def order_on_way(whatsapp, phone_number, ListSection, SectionRow):
+
+def order_on_way(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
+        # Format fruits and vegetables
+        fruits = format_items(order.fruits_items) if order.fruits_items else "No fruits"
+        vegetables = format_items(order.vegetables_items) if order.vegetables_items else "No vegetables"
+        
+        # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
-            body="🚚 Your order is on the way! It should arrive shortly. 🌟",
+            body=f"🚚 Your order (ID: {order.order_id}) is on the way! It should arrive shortly. 🌟\n\n"
+                 f"🧾 *Total Amount*: ${order.total_amount}\n"
+                 f"📅 *Order Date*: {order.order_date}\n"
+                 f"🍎 *Fruits*: {fruits}\n"
+                 f"🥦 *Vegetables*: {vegetables}",
             button="Select an Option",
             sections=[
                 ListSection(
@@ -463,12 +515,22 @@ def order_on_way(whatsapp, phone_number, ListSection, SectionRow):
     except Exception as e:
         return False, f"Failed to send order on the way message: {str(e)}"
 
-def order_delivered(whatsapp, phone_number, ListSection, SectionRow):
+
+def order_delivered(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
+        # Format fruits and vegetables
+        fruits = format_items(order.fruits_items) if order.fruits_items else "No fruits"
+        vegetables = format_items(order.vegetables_items) if order.vegetables_items else "No vegetables"
+        
+        # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
-            body="🎉 Your order has been delivered! Enjoy your purchase. 😊",
+            body=f"🎉 Your order (ID: {order.order_id}) has been delivered! Enjoy your purchase. 😊\n\n"
+                 f"🧾 *Total Amount*: ${order.total_amount}\n"
+                 f"📅 *Order Date*: {order.order_date}\n"
+                 f"🍎 *Fruits*: {fruits}\n"
+                 f"🥦 *Vegetables*: {vegetables}",
             button="Select an Option",
             sections=[
                 ListSection(
@@ -483,8 +545,9 @@ def order_delivered(whatsapp, phone_number, ListSection, SectionRow):
             ],
             footer="#MufakoseHarvest #MagandangaDelights"
         )
+        return True, "Order delivered status message sent successfully."
     except Exception as e:
-        print(f"Error sending order delivered message: {e}")
+        return False, f"Failed to send order delivered message: {str(e)}"
 
 def no_orders(whatsapp, phone_number, ListSection, SectionRow):
     try:
