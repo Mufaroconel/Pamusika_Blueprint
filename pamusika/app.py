@@ -193,13 +193,12 @@ class GroupAPI(MethodView):
             elif user_choice == "track_order":
                 with app.app_context():
                     orders = get_active_orders_by_phone(phone)
-                    print("order tracking")
-                    if not orders:
+                    if not orders or isinstance(orders, str):
                         result = no_orders(whatsapp, phone, ListSection, SectionRow)
                         if result:
                             message_sent, res = result
                         else :
-                            message_sent, res = None
+                            message_sent, res = None, None
                     else :
                         try:
                             # Check if 'orders' is iterable
@@ -216,7 +215,8 @@ class GroupAPI(MethodView):
 
                         except TypeError:
                             # Handle the case where 'orders' is not iterable (e.g., it's a single order)
-                            order_status = orders.status  # Assuming it's a single order object
+                            order = orders
+                            order_status = order.status  # Assuming it's a single order object
                             if order_status == "Sent to Packaging":
                                 message_sent, res = sent_to_packaging(whatsapp, phone, order, ListSection, SectionRow)
                             elif order_status == "Packaging received":

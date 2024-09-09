@@ -418,15 +418,19 @@ def sent_to_packaging(whatsapp, phone_number, order, ListSection, SectionRow):
 
 def packaging_received(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
+        # Decode fruits and vegetables from JSON
+        fruits = json.loads(order.fruits_items)
+        vegetables = json.loads(order.vegetables_items)
+
         # Format fruits and vegetables
-        fruits = format_items(order.fruits_items) if order.fruits_items else "No fruits"
-        vegetables = format_items(order.vegetables_items) if order.vegetables_items else "No vegetables"
+        fruits = format_items(fruits) if order.fruits_items else "No fruits"
+        vegetables = format_items(vegetables) if order.vegetables_items else "No vegetables"
         
         # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
-            body=f"🎉 Good news! Your order (ID: {order.order_id}) has been received by packaging. 🛠️\n\n"
+            body=f"🎉 Good news! Your order (ID: {order.id}) has been received by packaging. 🛠️\n\n"
                  f"🧾 *Total Amount*: ${order.total_amount}\n"
                  f"📅 *Order Date*: {order.order_date}\n"
                  f"🍎 *Fruits*: {fruits}\n"
@@ -449,22 +453,27 @@ def packaging_received(whatsapp, phone_number, order, ListSection, SectionRow):
     except Exception as e:
         return False, f"Failed to send packaging received message: {str(e)}"
 
-
 def order_packed(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
+        # Decode fruits and vegetables from JSON
+        fruits = json.loads(order.fruits_items)
+        vegetables = json.loads(order.vegetables_items)
+
         # Format fruits and vegetables
-        fruits = format_items(order.fruits_items) if order.fruits_items else "No fruits"
-        vegetables = format_items(order.vegetables_items) if order.vegetables_items else "No vegetables"
+        fruits = format_items(fruits) if order.fruits_items else "No fruits"
+        vegetables = format_items(vegetables) if order.vegetables_items else "No vegetables"
         
         # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
-            body=f"📦 Your order (ID: {order.order_id}) is packed and ready for delivery. Hang tight! 🚚\n\n"
-                 f"🧾 *Total Amount*: ${order.total_amount}\n"
-                 f"📅 *Order Date*: {order.order_date}\n"
-                 f"🍎 *Fruits*: {fruits}\n"
-                 f"🥦 *Vegetables*: {vegetables}",
+            body=(
+                f"📦 Your order (ID: {order.id}) is packed and ready for delivery. Hang tight! 🚚\n\n"
+                f"🧾 *Total Amount*: ${order.total_amount}\n"
+                f"📅 *Order Date*: {order.order_date}\n"
+                f"🍎 *Fruits*: {fruits}\n"
+                f"🥦 *Vegetables*: {vegetables}"
+            ),
             button="Select an Option",
             sections=[
                 ListSection(
@@ -473,7 +482,7 @@ def order_packed(whatsapp, phone_number, order, ListSection, SectionRow):
                         SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
                         SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
                         SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(id="user_profile", title="User Profile", description="View and Edit Your Details."),
                     ],
                 ),
             ],
@@ -486,15 +495,19 @@ def order_packed(whatsapp, phone_number, order, ListSection, SectionRow):
 
 def order_on_way(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
+        # Decode fruits and vegetables from JSON
+        fruits = json.loads(order.fruits_items)
+        vegetables = json.loads(order.vegetables_items)
+
         # Format fruits and vegetables
-        fruits = format_items(order.fruits_items) if order.fruits_items else "No fruits"
-        vegetables = format_items(order.vegetables_items) if order.vegetables_items else "No vegetables"
+        fruits = format_items(fruits) if order.fruits_items else "No fruits"
+        vegetables = format_items(vegetables) if order.vegetables_items else "No vegetables"
         
         # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
-            body=f"🚚 Your order (ID: {order.order_id}) is on the way! It should arrive shortly. 🌟\n\n"
+            body=f"🚚 Your order (ID: {order.id}) is on the way! It should arrive shortly. 🌟\n\n"
                  f"🧾 *Total Amount*: ${order.total_amount}\n"
                  f"📅 *Order Date*: {order.order_date}\n"
                  f"🍎 *Fruits*: {fruits}\n"
@@ -520,15 +533,19 @@ def order_on_way(whatsapp, phone_number, order, ListSection, SectionRow):
 
 def order_delivered(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
+        # Decode fruits and vegetables from JSON
+        fruits = json.loads(order.fruits_items)
+        vegetables = json.loads(order.vegetables_items)
+
         # Format fruits and vegetables
-        fruits = format_items(order.fruits_items) if order.fruits_items else "No fruits"
-        vegetables = format_items(order.vegetables_items) if order.vegetables_items else "No vegetables"
+        fruits = format_items(fruits) if order.fruits_items else "No fruits"
+        vegetables = format_items(vegetables) if order.vegetables_items else "No vegetables"
         
         # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
-            body=f"🎉 Your order (ID: {order.order_id}) has been delivered! Enjoy your purchase. 😊\n\n"
+            body=f"🎉 Your order (ID: {order.id}) has been delivered! Enjoy your purchase. 😊\n\n"
                  f"🧾 *Total Amount*: ${order.total_amount}\n"
                  f"📅 *Order Date*: {order.order_date}\n"
                  f"🍎 *Fruits*: {fruits}\n"

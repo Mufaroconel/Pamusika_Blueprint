@@ -1,9 +1,11 @@
 from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, delete_all_customers,query_orders, add_product, get_product_name_and_category, delete_all_orders, cancel_last_order_by_phone, get_active_orders_by_phone,delete_all_order_products
+from messages.app_logic_messages import order_packed, packaging_received, sent_to_packaging
 from models import db, Customer, init_db, Order, order_products
 from flask import Flask, request, jsonify, render_template
 from flask_migrate import Migrate
 import json
-
+from wa_cloud_py import whatsapp
+from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mmsikadatabase.db'  # Use SQLite for simplicity
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -35,8 +37,11 @@ phone = "263776681617"
 with app.app_context():
     # cancel_last_order_by_phone(phone)
     orders = get_active_orders_by_phone(phone)
-    for order in orders :    
-        print(order.status)  # Verify if orders are being retrieved correctly.
+
+    print(f"orders type is {type(orders)}")  # Verify if orders are being retrieved correctly.
+
+    for order in orders :
+        sent_to_packaging(whatsapp, phone, order, ListSection, SectionRow)
 
 
 

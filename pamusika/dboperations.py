@@ -75,7 +75,7 @@ def get_all_orders():
     orders = db.session.query(Order, CustomerAlias.name.label('customer_name')) \
         .join(CustomerAlias, Order.customer_id == CustomerAlias.id) \
         .filter(Order.status.notin_(['Delivered', 'Cancelled'])) \
-        .order_by(Order.order_date.desc()) \
+        .order_by(Order.order_date.asc()) \
         .all()
     
     return orders
