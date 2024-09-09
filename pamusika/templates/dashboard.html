@@ -154,10 +154,15 @@
                                         <!-- Loop through all orders here -->
                                         {% for order, customer_name in orders %}
                                         <tr>
-                                            <td>{{order.id}}</td>
-                                            <td>{{customer_name}}</td>
-                                            <td>{{order.status}}</td>
-                                            <td>${{order.total_amount}}</td>
+                                            <td>
+                                                <!-- Make the Order ID clickable and link to the specific order details route -->
+                                                <a href="{{ url_for('order_details', order_id=order.id) }}">
+                                                    {{ order.id }}
+                                                </a>
+                                            </td>
+                                            <td>{{ customer_name }}</td>
+                                            <td>{{ order.status }}</td>
+                                            <td>${{ order.total_amount }}</td>
                                             <td>
                                                 <!-- Update Status Form -->
                                                 <form class="update-status-form" data-order-id="{{ order.id }}">
@@ -175,7 +180,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                    
+                            
                             <!-- Sent to Packaging -->
                             <div class="tab-pane fade" id="sent-to-packaging" role="tabpanel" aria-labelledby="sent-to-packaging-tab">
                                 <!-- Similar table structure with filtered orders for 'Sent to Packaging' -->

@@ -10,6 +10,7 @@ from models import db, Customer, init_db, Order
 from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 from flask_migrate import Migrate
+from flask import flash, url_for, redirect
 
 load_dotenv()
 wa_access_token = os.getenv("WA_TOKEN")
@@ -48,7 +49,33 @@ def index():
     # products section
     products = get_products()
     return render_template("dashboard.html", orders=orders, users = users, total_users=total_users, products = products)
+
+
+@app.route('/order/<int:order_id>', methods=['GET'])
+def order_details(order_id):
+    # Fetch the order details by ID
+    order = Order.query.get_or_404(order_id)
     
+    # You might also want to fetch customer details, depending on your use case
+    customer = Customer.query.get(order.customer_id)
+    
+    return render_template('order_details.html', order=order, customer=customer)
+
+@app.route('/order/<int:order_id>/update-status', methods=['POST'])
+def order_status_update(order_id):
+    # Fetch the order by ID
+    order = Order.query.get_or_404(order_id)
+    
+    # Update the order status from the form submission
+    new_status = request.form.get('status')
+    if new_status:
+        order.status = new_status
+        db.session.commit()
+        flash(f"Order {order_id} status updated to {new_status}", 'success')
+    
+    return redirect(url_for('order_details', order_id=order_id))
+
+
 whatsapp = WhatsApp(access_token=wa_access_token, phone_number_id=phone_id)
 
 def update_customer_state(phone, state):
@@ -84,7 +111,6 @@ class GroupAPI(MethodView):
         if isinstance(message, UserMessage):
             phone = message.user.phone_number
             username = message.user.name
-
             with app.app_context():
                 user = get_customer_by_phone(phone)
 
@@ -92,6 +118,7 @@ class GroupAPI(MethodView):
 
                     if not user:
                         add_customer_with_phone(phone)
+                        user.username = username
                         update_customer_state(phone, "collecting_name")
                         result = request_user_name(whatsapp, phone)
                         if result :
@@ -162,7 +189,7 @@ class GroupAPI(MethodView):
                     message_sent, res = result
                 else :
                     message_sent, res = None
-                    
+
             elif user_choice == "track_order":
                 with app.app_context():
                     orders = get_active_orders_by_phone(phone)
@@ -178,12 +205,12 @@ class GroupAPI(MethodView):
                             # Check if 'orders' is iterable
                             for order in orders:
                                 order_status = order.status
-                                if order_status == "Sent to Packaging":
-                                    message_sent, res = sent_to_packaging(whatsapp, phone, order, ListSection, SectionRow)
+                                if order_status == "Packed":
+                                    message_sent, res = order_packed(whatsapp, phone, order, ListSection, SectionRow)
                                 elif order_status == "Packaging received":
                                     message_sent, res = packaging_received(whatsapp, phone, order, ListSection, SectionRow)
-                                elif order_status == "Packed":
-                                    message_sent, res = order_packed(whatsapp, phone, order, ListSection, SectionRow)
+                                elif order_status == "Sent to Packaging":
+                                    message_sent, res = sent_to_packaging(whatsapp, phone, order, ListSection, SectionRow)
                                 elif order_status == "Sent for delivery":
                                     message_sent, res = order_on_way(whatsapp, phone, order, ListSection, SectionRow)
 

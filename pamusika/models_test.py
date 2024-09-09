@@ -33,8 +33,11 @@ product_quantities = [
 category_id = "smdx1imjv1"
 phone = "263776681617"
 with app.app_context():
-    cancel_last_order_by_phone(phone)
-    # get_active_orders_by_phone(phone)
+    # cancel_last_order_by_phone(phone)
+    orders = get_active_orders_by_phone(phone)
+    for order in orders :    
+        print(order.status)  # Verify if orders are being retrieved correctly.
+
 
 
     # for order in orders :    

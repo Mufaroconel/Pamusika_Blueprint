@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <!-- Order Details Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h4>Order Details</h4>
+                    <small class="text-muted">Order ID: {{ order.id }}</small>
+                </div>
+                <div class="card-body">
+                    <!-- Customer Information -->
+                    <h5 class="card-title">Customer Information</h5>
+                    <p><strong>Name:</strong> {{ customer.name }}</p>
+                    <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
+
+                    <!-- Order Information -->
+                    <h5 class="card-title mt-4">Order Information</h5>
+                    <p><strong>Status:</strong> {{ order.status }}</p>
+                    <p><strong>Order Date:</strong> {{ order.order_date }}</p>
+                    <p><strong>Total Amount:</strong> ${{ order.total_amount }}</p>
+
+                    <!-- Fruits and Vegetables -->
+                    <h5 class="card-title mt-4">Items Ordered</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <strong>Fruits:</strong>
+                            {% if order.get_fruits_items() %}
+                                <ul>
+                                {% for item in order.get_fruits_items() %}
+                                  <li>{{ item['product'] }}: {{ item['quantity'] }} at ${{ item['price'] }} each</li>
+                                {% endfor %}
+                              </ul>
+                            {% else %}
+                                No fruits ordered.
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Vegetables:</strong>
+                            {% if order.get_vegetables_items() %}
+                                <ul>
+                                {% for item in order.get_vegetables_items() %}
+                                  <li>{{ item['product'] }}: {{ item['quantity'] }} at ${{ item['price'] }} each</li>
+                                {% endfor %}
+                              </ul>
+                            {% else %}
+                                No vegetables ordered.
+                            {% endif %}
+                        </li>
+                    </ul>
+
+                    <!-- Order Actions -->
+                    <div class="mt-4">
+                        <h5 class="card-title">Update Status</h5>
+                        <form method="POST" action="{{ url_for('order_status_update', order_id=order.id) }}">
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="Sent to Packaging" {% if order.status == "Sent to Packaging" %}selected{% endif %}>Sent to Packaging</option>
+                                <option value="Packed" {% if order.status == "Packed" %}selected{% endif %}>Packed</option>
+                                <option value="Sent for delivery" {% if order.status == "Sent for delivery" %}selected{% endif %}>Sent for delivery</option>
+                                <option value="Delivered" {% if order.status == "Delivered" %}selected{% endif %}>Delivered</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm mt-2">Update Status</button>
+                        </form>                        
+                    </div>
+                    <div class="mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Dashboard</a>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

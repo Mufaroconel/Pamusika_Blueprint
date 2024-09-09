@@ -69,11 +69,12 @@ def get_customer_by_phone(phone):
     return customer
 
 def get_all_orders():
-    """Retrieve all orders, including customer names, ordered by creation date in descending order."""
+    """Retrieve all orders, excluding those with status 'Delivered' or 'Cancelled', ordered by creation date in descending order."""
     CustomerAlias = aliased(Customer)
 
     orders = db.session.query(Order, CustomerAlias.name.label('customer_name')) \
         .join(CustomerAlias, Order.customer_id == CustomerAlias.id) \
+        .filter(Order.status.notin_(['Delivered', 'Cancelled'])) \
         .order_by(Order.order_date.desc()) \
         .all()
     
