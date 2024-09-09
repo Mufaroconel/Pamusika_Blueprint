@@ -83,11 +83,13 @@ class GroupAPI(MethodView):
 
         if isinstance(message, UserMessage):
             phone = message.user.phone_number
+            username = message.user.name
 
             with app.app_context():
                 user = get_customer_by_phone(phone)
 
                 if isinstance(message, TextMessage):
+
                     if not user:
                         add_customer_with_phone(phone)
                         update_customer_state(phone, "collecting_name")
@@ -144,21 +146,27 @@ class GroupAPI(MethodView):
                     message_sent, res = None
             elif user_choice == "cancel_order":
                 # Update the order status to cancelled
-                cancel_order = cancel_last_order_by_phone(phone)
-                
-                if cancel_order:  # Now this will be True if the cancellation was successful
-                    result = order_cancelled(whatsapp, phone, ListSection, SectionRow)
-                    if result:
-                        message_sent, res = result
-                    else:
-                        message_sent, res = None
+                cancel_last_order_by_phone(phone)
+                result = order_cancelled(whatsapp, phone, ListSection, SectionRow)
+                print("cancelled")
+                if result:
+                    message_sent, res = result
+                    print("message sent")
                 else:
-                    print("Cancellation failed or no order to cancel.")
+                    message_sent, res = None
 
+            elif user_choice == "edit_order" :
+                cancel_last_order_by_phone(phone)
+                result = send_catalog(phone, catalog_id, whatsapp, CatalogSection)
+                if result:
+                    message_sent, res = result
+                else :
+                    message_sent, res = None
+                    
             elif user_choice == "track_order":
                 with app.app_context():
                     orders = get_active_orders_by_phone(phone)
-
+                    print("order tracking")
                     if not orders:
                         result = no_orders(whatsapp, phone, ListSection, SectionRow)
                         if result:

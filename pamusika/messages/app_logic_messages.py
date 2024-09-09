@@ -1,3 +1,6 @@
+import json
+
+
 def request_user_name(whatsapp, phone_number):
     try:
         # Send the text requesting the user's full name
@@ -366,7 +369,6 @@ def handle_cancellation(whatsapp, phone_number, ListSection, SectionRow):
     except Exception as e:
         return False, f"Failed to send cancellation message: {str(e)}"
 
-import json
 
 def format_items(items):
     """Helper function to format items for display."""
