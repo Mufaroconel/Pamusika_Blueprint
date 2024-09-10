@@ -7,10 +7,11 @@ from dotenv import load_dotenv
 import os
 from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category, cancel_last_order_by_phone, get_active_orders_by_phone
 from models import db, Customer, init_db, Order
-from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled
+from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled, notify_unavailable_service, notify_address_suggestion
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 from flask_migrate import Migrate
 from flask import flash, url_for, redirect
+from location_restriction import validate_address
 
 load_dotenv()
 wa_access_token = os.getenv("WA_TOKEN")
@@ -133,11 +134,21 @@ class GroupAPI(MethodView):
                         else :
                             message_sent, res = None
                     elif user.state == "collecting_address":
-                        user.address = message.body
-                        update_customer_state(phone, "confirming_user_profile")
-                        name = user.name
-                        address = user.address
-                        message_sent, res = confirm_user_details(whatsapp, phone, name, address, ListSection, SectionRow)
+                        address = message.body
+                        is_valid, suggestion = validate_address(address)
+                        if is_valid:
+                            user.address = address
+                            update_customer_state(phone, "confirming_user_profile")
+                            name = user.name
+                            address = user.address
+                            message_sent, res = confirm_user_details(whatsapp, phone, name, address, ListSection, SectionRow)
+                        else :
+                            if suggestion:
+                                message_sent, res = notify_address_suggestion(whatsapp, phone, suggestion)
+                            else :
+                                message_sent, res = notify_unavailable_service(whatsapp, phone)
+                                message_sent, res = request_address(whatsapp, phone)
+                                update_customer_state(phone, "collecting_address")
                     else:
                         result = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
                         if result :

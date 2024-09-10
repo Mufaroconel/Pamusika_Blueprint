@@ -34,14 +34,33 @@ product_quantities = [
 ]
 category_id = "smdx1imjv1"
 phone = "263776681617"
+def delete_all_customers():
+    try:
+        # Query all customers
+        customers = Customer.query.all()
+        
+        if customers:
+            for customer in customers:
+                db.session.delete(customer)
+            
+            # Commit the changes
+            db.session.commit()
+            print("All customers deleted successfully.")
+        else:
+            print("No customers found.")
+    except Exception as e:
+        # Rollback in case of any error
+        db.session.rollback()
+        print(f"Error deleting customers: {e}")
 with app.app_context():
+    delete_all_customers()
     # cancel_last_order_by_phone(phone)
-    orders = get_active_orders_by_phone(phone)
+    # orders = get_active_orders_by_phone(phone)
 
-    print(f"orders type is {type(orders)}")  # Verify if orders are being retrieved correctly.
+    # print(f"orders type is {type(orders)}")  # Verify if orders are being retrieved correctly.
 
-    for order in orders :
-        sent_to_packaging(whatsapp, phone, order, ListSection, SectionRow)
+    # for order in orders :
+    #     sent_to_packaging(whatsapp, phone, order, ListSection, SectionRow)
 
 
 

@@ -25,7 +25,14 @@ def request_address(whatsapp, phone_number):
         whatsapp.send_text(
             to=phone_number,
             body=(
-                "🏠 Finally, please provide your delivery address."
+                "🏠 Finally, please provide your delivery address.\n\n"
+                "To ensure accurate processing, please enter your address in the following format:\n"
+                "1. House Number\n"
+                "2. Street Name\n"
+                "3. Suburb\n\n"
+                "For example:\n"
+                '69 Jiri Crescent, Mufakose\n\n'
+                "Thank you!"
             ),
         )
         # Return True and success message on successful execution
@@ -34,6 +41,41 @@ def request_address(whatsapp, phone_number):
     except Exception as e:
         # Catch any exception and return False with the error message
         return False, f"Failed to request delivery address: {str(e)}"
+
+def notify_address_suggestion(whatsapp, phone_number, suggestion):
+    try:
+        # Send a message suggesting the corrected address to the user
+        whatsapp.send_text(
+            to=phone_number,
+            body=(
+                f"🚨 It seems like the address you provided might not be valid for our services.\n"
+                f"Did you mean *{suggestion}*? 🏠\n"
+                "Please confirm or provide your correct address."
+            ),
+        )
+        # Return True and success message on successful execution
+        return True, "Address suggestion sent successfully."
+
+    except Exception as e:
+        # Catch any exception and return False with the error message
+        return False, f"Failed to send address suggestion: {str(e)}"
+
+def notify_unavailable_service(whatsapp, phone_number):
+    try:
+        # Send the text notifying the user that services are unavailable in their area
+        whatsapp.send_text(
+            to=phone_number,
+            body=(
+                "🚫 Unfortunately, services are not yet available in your area. "
+                "We are expanding soon, so stay tuned!"
+            ),
+        )
+        # Return True and success message on successful execution
+        return True, "Service availability notification sent successfully."
+    
+    except Exception as e:
+        # Catch any exception and return False with the error message
+        return False, f"Failed to notify service unavailability: {str(e)}"
 
 def confirm_user_details(whatsapp, phone_number, name, address, ListSection, SectionRow):
     try:
