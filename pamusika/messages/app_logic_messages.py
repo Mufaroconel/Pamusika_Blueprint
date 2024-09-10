@@ -577,7 +577,7 @@ def no_orders(whatsapp, phone_number, ListSection, SectionRow):
                 "🤔 Hmm, it looks like you don't have any orders at the moment.\n"
                 "🛒 Do you wish to make any purchases or need assistance with something else?\n"
                 "📞 You can always start by placing an order or contacting customer support."
-            ),
+            ),                                                                                                                                                                          
             button="Select an Option",
             sections=[
                 ListSection(

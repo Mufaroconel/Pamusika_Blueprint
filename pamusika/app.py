@@ -118,7 +118,6 @@ class GroupAPI(MethodView):
 
                     if not user:
                         add_customer_with_phone(phone)
-                        user.username = username
                         update_customer_state(phone, "collecting_name")
                         result = request_user_name(whatsapp, phone)
                         if result :
