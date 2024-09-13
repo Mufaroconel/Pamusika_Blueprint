@@ -6,6 +6,30 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import delete
 
+def get_available_products_by_category(db_session):
+    """
+    Queries the database to fetch available products and group them by category.
+    
+    :param db_session: SQLAlchemy session to use for querying.
+    :return: Dictionary where keys are product categories and values are lists of meta_ids.
+    """
+    try:
+        # Query products from the database where availability is True
+        products = db_session.query(Product).filter_by(availability=True).all()
+
+        # Create a dictionary to group products by category
+        catalog_sections = {}
+        for product in products:
+            if product.product_category not in catalog_sections:
+                catalog_sections[product.product_category] = []
+            catalog_sections[product.product_category].append(product.meta_id)
+        
+        return catalog_sections
+
+    except Exception as e:
+        # Optionally, log the exception or raise it to handle it in the calling function
+        raise Exception(f"Error fetching products: {str(e)}")
+
 def delete_all_customers():
     with db.session.begin():  # Begin a new database session
         try:
@@ -261,7 +285,10 @@ def get_product_name_and_category(meta_id):
     else:
         return None
 
-def cancel_last_order_by_phone(phone):
+
+from sqlalchemy.exc import SQLAlchemyError
+
+def update_last_order_status_to_sent(phone):
     try:
         # Find the customer by phone number
         customer = Customer.query.filter_by(phone=phone).first()
@@ -273,9 +300,53 @@ def cancel_last_order_by_phone(phone):
         customer_id = customer.id
 
         # Find the last order for the customer, sorted by the latest order date
-        last_order = Order.query.filter_by(customer_id=customer_id).order_by(Order.order_date.desc()).first()
+        last_order = Order.query.filter_by(customer_id=customer_id) \
+                                .order_by(Order.order_date.desc()) \
+                                .first()
         if not last_order:
             print("No orders found for this customer.")
+            return
+
+        # Check if the order status is "Pending"
+        if last_order.status == "Pending":
+            # Update the order status to "Sent to Packaging"
+            last_order.status = "Sent to Packaging"
+
+            # Commit the update to the database
+            db.session.commit()
+
+            print("Last order status updated to 'Sent to Packaging' successfully.")
+        else:
+            print("The last order status is not 'Pending'. No update performed.")
+
+    except SQLAlchemyError as e:
+        # Roll back the session if there's an error
+        print(f"An error occurred: {e}")
+        db.session.rollback()
+
+    except SQLAlchemyError as e:
+        # Roll back the session if there's an error
+        print(f"An error occurred: {e}")
+        db.session.rollback()
+
+
+def cancel_last_order_by_phone(phone):
+    try:
+        # Find the customer by phone number
+        customer = Customer.query.filter_by(phone=phone).first()
+        if not customer:
+            print("Customer not found.")
+            return
+
+        # Get the customer ID
+        customer_id = customer.id
+
+        # Find the last pending order for the customer, sorted by the latest order date
+        last_order = Order.query.filter_by(customer_id=customer_id, status="Pending") \
+                                .order_by(Order.order_date.desc()) \
+                                .first()
+        if not last_order:
+            print("No pending orders found for this customer.")
             return
 
         # Update the order status to "Cancelled"
@@ -284,7 +355,7 @@ def cancel_last_order_by_phone(phone):
         # Commit the update to the database
         db.session.commit()
 
-        print("Last order status updated to 'Cancelled' successfully.")
+        print("Last pending order status updated to 'Cancelled' successfully.")
 
     except SQLAlchemyError as e:
         # Roll back the session if there's an error

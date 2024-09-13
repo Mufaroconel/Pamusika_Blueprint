@@ -7,7 +7,7 @@ import json
 from wa_cloud_py import whatsapp
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mmsikadatabase.db'  # Use SQLite for simplicity
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mumsikadatabase.db'  # Use SQLite for simplicity
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
 

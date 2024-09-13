@@ -2,9 +2,20 @@ import difflib
 
 # Define valid streets with house number ranges
 valid_addresses = {
-    "jiri crescent": range(1, 101),  # House numbers from 1 to 100 for Jiri Crescent
-    "mukumbadzetse": range(1, 101),    # House numbers from 1 to 100 for Mukumbadzetse
-    "muridzamhara": range(1, 101),     # House numbers from 1 to 100 for Muridzamhara
+    "jiri": range(1, 101),  
+    "muridzamhara": range(1, 151),
+    "mukumbadzetse": range(1, 151), 
+    "donhodzo": range(1, 151),
+    "muchakata": range(1, 151),
+    "mupani": range(1, 151),
+    "zambuko": range(1, 151),
+    "mvumba": range(1, 151),
+    "cheni": range(1, 151),
+    "jachacha": range(1, 151),
+    "mvuto": range(1, 151),
+    "bembenene": range(1, 151),
+    "chiraramhene": range(1, 151),
+    "mbambarize": range(1, 151),
 }
 
 def suggest_street(street_name):
@@ -14,40 +25,33 @@ def suggest_street(street_name):
         return suggestions[0]  # Return the closest match
     return None
 
+def extract_street_name(address_parts):
+    """Extracts the second part (street name) from the address, regardless of length."""
+    if len(address_parts) > 1:
+        # If address has more than 2 parts, assume second part is the start of the street name
+        return address_parts[1].strip().lower()
+    return ""  # If no second part, return an empty string
+
 def validate_address(full_address):
     try:
         # Convert input address to lowercase for comparison and split into components
-        parts = full_address.strip().lower().split(' ', 2)  # Split into 3 parts: house number, street, and the rest
-        house_number = int(parts[0])                        # First part is the house number
-        street = parts[1].strip()                           # Second part is the street name
-        if len(parts) > 2:
-            street += f" {parts[2].strip()}"                # If there’s a third part, concatenate to street
+        parts = full_address.strip().lower().split(' ')  # Split into parts: house number, street, etc.
+        house_number = int(parts[0])  # First part is the house number
+
+        # Extract the second part of the address as the street name
+        street_name = extract_street_name(parts)
 
         # Check if the street is in the valid addresses
-        if street in valid_addresses:
+        if street_name in valid_addresses:
             # Check if the house number falls within the valid range for that street
-            if house_number in valid_addresses[street]:
+            if house_number in valid_addresses[street_name]:
                 return True, None  # Address is valid, no suggestion needed
             else:
                 return False, None  # Invalid house number, no suggestion
         else:
             # Suggest a street if the input street is not valid
-            suggestion = suggest_street(street)
+            suggestion = suggest_street(street_name)
             return False, suggestion
     except (ValueError, IndexError):
         # Handle errors in format or non-numeric house numbers
         return False, None
-
-def register_user(full_address):
-    # Validate the user's address
-    is_valid, suggestion = validate_address(full_address)
-
-    if is_valid:
-        print("Registration successful! Welcome!")
-        return True  # Return True to indicate success
-    else:
-        if suggestion:
-            print(f"Sorry, services are not yet available at this address. Did you mean '{suggestion}'?")
-        else:
-            print("Sorry, services are not yet available in your area.")
-        return False  # Return False to indicate failure

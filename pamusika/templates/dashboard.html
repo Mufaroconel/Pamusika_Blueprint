@@ -37,7 +37,10 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <img src="Assets/musika-logo.png" alt="" width="10px" height="10px"><a class="navbar-brand" href="#">Pamusika Dashboard</a>
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static', filename='Assets/musika-logo.png') }}" alt="Musika Logo" class="d-inline-block align-middle me-2" style="width: 40px; height: auto;">
+                Pamusika Dashboard
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -58,8 +61,13 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#list-settings" data-bs-toggle="tab">Settings</a>
                     </li>
+                    <!-- Logout option -->
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
                 </ul>
             </div>
+            
         </div>
     </nav>
 
@@ -204,39 +212,85 @@
                     </div>
                     
                     <!-- Products Section -->
-                    <div class="tab-pane fade" id="list-products" role="tabpanel" aria-labelledby="list-products-list">
-                        <h3>Products</h3>
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Product ID</th>
-                                    <th>Name</th>
-                                    <th>Category</th> <!-- Added Category Column -->
-                                    <th>Price</th>
-                                    <th>Currency</th>
-                                    <th>Availability</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Loop through products here -->
-                                {% for product in products %}
-                                <tr>
-                                    <td>{{ product.id }}</td>
-                                    <td>{{ product.name }}</td>
-                                    <td>{{ product.product_category }}</td> <!-- Display Category -->
-                                    <td>${{ product.price }}</td>
-                                    <td>{{ product.currency }}</td>
-                                    <td>{{ 'In Stock' if product.availability else 'Out of Stock' }}</td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm">Edit</button>
-                                        <button class="btn btn-danger btn-sm">Delete</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="tab-pane fade" id="list-products" role="tabpanel" aria-labelledby="list-products-list">
+                <h3>Products</h3>
+
+                <!-- Add Product Form -->
+                <div class="mb-4">
+                    <h4>Add New Product</h4>
+                    <form method="POST" action="/add-product">
+                        <div class="mb-3">
+                            <label for="productName" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="productName" name="productName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productCategory" class="form-label">Category</label>
+                            <input type="text" class="form-control" id="productCategory" name="productCategory" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productPrice" class="form-label">Price</label>
+                            <input type="number" class="form-control" id="productPrice" name="productPrice" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="currency" class="form-label">Currency</label>
+                            <input type="text" class="form-control" id="currency" name="currency" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="availability" class="form-label">Availability</label>
+                            <select class="form-select" id="availability" name="availability">
+                                <option value="1">In Stock</option>
+                                <option value="0">Out of Stock</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success">Add Product</button>
+                    </form>
+                </div>
+
+                <!-- Products Table -->
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Product ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Currency</th>
+                            <th>Availability</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Loop through products here -->
+                        {% for product in products %}
+                        <tr>
+                            <td>{{ product.id }}</td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.product_category }}</td>
+                            <td>${{ product.price }}</td>
+                            <td>{{ product.currency }}</td>
+                            <td>{{ 'In Stock' if product.availability else 'Out of Stock' }}</td>
+                            <td>
+                                <!-- Edit Button -->
+                                <!-- <button class="btn btn-primary btn-sm" onclick="editProduct({{ product.id }})">Edit</button> -->
+
+                                <!-- Delete Button with form for deletion -->
+                                <form method="POST" action="/delete-product/{{ product.id }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+<script>
+    function editProduct(productId) {
+        // You can add JavaScript here to open an edit form modal or redirect to an edit page
+        window.location.href = '/edit-product/' + productId;
+    }
+</script>
+
 
                     <!-- Users Section -->
                     <div class="tab-pane fade" id="list-users" role="tabpanel" aria-labelledby="list-users-list">
@@ -303,7 +357,7 @@
         // Refresh the page every 10 seconds
         setTimeout(function(){
             window.location.reload(1);
-        }, 30000);  // 10000 milliseconds = 10 seconds
+        }, 60000);  // 10000 milliseconds = 10 seconds
     </script>    
 </body>
 </html>

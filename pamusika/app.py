@@ -1,17 +1,19 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask.views import MethodView
 from wa_cloud_py import WhatsApp
 from wa_cloud_py.message_types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
 from dotenv import load_dotenv
 import os
-from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category, cancel_last_order_by_phone, get_active_orders_by_phone
-from models import db, Customer, init_db, Order
-from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled, notify_unavailable_service, notify_address_suggestion
+from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category, cancel_last_order_by_phone, get_active_orders_by_phone, update_last_order_status_to_sent
+from models import db, Customer, init_db, Order, db_session
+from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled, notify_unavailable_service, notify_address_suggestion, order_amount_restriction
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 from flask_migrate import Migrate
 from flask import flash, url_for, redirect
 from location_restriction import validate_address
+from functools import wraps
+from datetime import timedelta
 
 load_dotenv()
 wa_access_token = os.getenv("WA_TOKEN")
@@ -19,10 +21,10 @@ phone_id = os.getenv("PHONE_ID")
 verify_token = os.getenv("VERIFY_TOKEN")
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mmsikadatabase.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mumsikadatabase.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
-
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 # Initialize the SQLAlchemy object with the app
 # Set up Flask-Migrate with the app and db
 migrate = Migrate(app, db)
@@ -30,9 +32,52 @@ db.init_app(app)
 init_db(app)
 catalog_id = "253006871078558"
 
+valid_username = 'admin'
+valid_password = 'password'
 
-@app.route("/dashboard")
+def login_required(f):
+    """A decorator to protect routes that require login"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            flash("Please log in to access this page.", 'warning')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/')
 def index():
+    return redirect(url_for('login'))
+
+# Login Route
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        if username == valid_username and password == valid_password:
+            session.permanent = True
+            session['user'] = username
+            flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password', 'danger')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+@app.after_request
+def add_header(response):
+    response.cache_control.no_store = True
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+ 
+@app.route("/dashboard")
+@login_required
+def dashboard():
     order_status = request.args.get('order_status')
     customer_name = request.args.get('customer_name')
     order_id = request.args.get('order_id')
@@ -53,6 +98,7 @@ def index():
 
 
 @app.route('/order/<int:order_id>', methods=['GET'])
+@login_required
 def order_details(order_id):
     # Fetch the order details by ID
     order = Order.query.get_or_404(order_id)
@@ -63,6 +109,7 @@ def order_details(order_id):
     return render_template('order_details.html', order=order, customer=customer)
 
 @app.route('/order/<int:order_id>/update-status', methods=['POST'])
+@login_required
 def order_status_update(order_id):
     # Fetch the order by ID
     order = Order.query.get_or_404(order_id)
@@ -76,6 +123,11 @@ def order_status_update(order_id):
     
     return redirect(url_for('order_details', order_id=order_id))
 
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
 
 whatsapp = WhatsApp(access_token=wa_access_token, phone_number_id=phone_id)
 
@@ -120,7 +172,7 @@ class GroupAPI(MethodView):
                     if not user:
                         add_customer_with_phone(phone)
                         update_customer_state(phone, "collecting_name")
-                        result = request_user_name(whatsapp, phone)
+                        result = request_user_name(whatsapp,username, phone)
                         if result :
                             message_sent, res = result
                         else :
@@ -141,7 +193,7 @@ class GroupAPI(MethodView):
                             update_customer_state(phone, "confirming_user_profile")
                             name = user.name
                             address = user.address
-                            message_sent, res = confirm_user_details(whatsapp, phone, name, address, ListSection, SectionRow)
+                            message_sent, res = confirm_user_details(whatsapp, phone,username, name, address, ListSection, SectionRow)
                         else :
                             if suggestion:
                                 message_sent, res = notify_address_suggestion(whatsapp, phone, suggestion)
@@ -150,7 +202,7 @@ class GroupAPI(MethodView):
                                 message_sent, res = request_address(whatsapp, phone)
                                 update_customer_state(phone, "collecting_address")
                     else:
-                        result = greet_user_and_select_option(whatsapp, phone, ListSection, SectionRow)
+                        result = greet_user_and_select_option(whatsapp, phone, username, ListSection, SectionRow)
                         if result :
                             message_sent, res = result
                         else :
@@ -176,11 +228,14 @@ class GroupAPI(MethodView):
                 else :
                     message_sent, res = None
             elif user_choice == "place_order":
-                result = send_catalog(phone, catalog_id, whatsapp, CatalogSection)
+                result = send_catalog(phone, catalog_id, whatsapp, CatalogSection, db_session)
                 if result:
                     message_sent, res = result
                 else :
                     message_sent, res = None
+            if user_choice == "confirm_order":
+                update_last_order_status_to_sent(phone)
+                order_confirmed(whatsapp, phone, ListSection, SectionRow)
             elif user_choice == "cancel_order":
                 # Update the order status to cancelled
                 cancel_last_order_by_phone(phone)
@@ -188,13 +243,12 @@ class GroupAPI(MethodView):
                 print("cancelled")
                 if result:
                     message_sent, res = result
-                    print("message sent")
                 else:
                     message_sent, res = None
 
             elif user_choice == "edit_order" :
                 cancel_last_order_by_phone(phone)
-                result = send_catalog(phone, catalog_id, whatsapp, CatalogSection)
+                result = send_catalog(phone, catalog_id, whatsapp, CatalogSection, db_session)
                 if result:
                     message_sent, res = result
                 else :
@@ -286,11 +340,16 @@ class GroupAPI(MethodView):
                         vegetables_items=vegetables_items,
                         product_quantities=product_quantities
                         )
-                execute_order()
-                result = confirm_order(whatsapp, phone, ListSection, SectionRow, total_amount, fruits_items, vegetables_items, product_quantities, customer_id, delivery_address )
+                if total_amount >= 0.50:
+                    execute_order()  
+                    result = confirm_order(whatsapp, phone, ListSection, SectionRow, total_amount, fruits_items, vegetables_items, product_quantities, customer_id, delivery_address)
+                else :
+                    result = order_amount_restriction(whatsapp, phone, ListSection, SectionRow, total_amount, fruits_items, vegetables_items, product_quantities, customer_id, delivery_address)
+                
+
                 if result:
                     message_sent, res = result
-                else :
+                else:
                     message_sent, res = None
 
         elif isinstance(message, MessageStatus):
@@ -299,11 +358,7 @@ class GroupAPI(MethodView):
     
         else:
              print("Unsupported message type")
-
-        if isinstance(message, InteractiveListMessage):
-            user_choice = message.reply_id
-            if user_choice == "confirm_order":
-                order_confirmed(whatsapp, phone, ListSection, SectionRow)
+            
         return "", 200
     
         

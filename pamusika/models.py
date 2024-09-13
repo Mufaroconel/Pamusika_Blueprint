@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 
 db = SQLAlchemy()
-
+db_session = db.session 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.String(15), unique=True, nullable=False)
@@ -34,7 +34,7 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)  # Assuming you have a Customer table
     order_date = db.Column(db.DateTime, nullable=False, default=datetime.now)
-    status = db.Column(db.String(50), nullable=False, default="Sent to Packaging")
+    status = db.Column(db.String(50), nullable=False, default="Pending")
     total_amount = db.Column(db.Float, nullable=True)
     delivery_address = db.Column(db.String(255), nullable=True)
 
