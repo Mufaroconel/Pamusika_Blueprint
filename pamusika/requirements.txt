@@ -42,3 +42,4 @@ proto-plus==1.24.0
 protobuf==4.25.3
 proxy-tools==0.1.0
 pyasn1-modules==0.2.8
+wa-cloud-py==0.1.7
