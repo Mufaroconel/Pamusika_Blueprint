@@ -1,11 +1,11 @@
 import json
 from dboperations import get_available_products_by_category
 
-def request_user_name(whatsapp,username, phone_number):
+def request_user_name(whatsapp,username, phone):
     try:
         # Send the text requesting the user's full name
         whatsapp.send_text(
-            to=phone_number,
+            to=phone,
             body=(
                 f"🏷️Hi {username} Let's get you registered! Please provide the following details to complete your registration:\n\n"
                 "1. *Full Name*: Please reply with your full name."

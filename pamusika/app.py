@@ -172,7 +172,7 @@ class GroupAPI(MethodView):
                     if not user:
                         add_customer_with_phone(phone)
                         update_customer_state(phone, "collecting_name")
-                        result = request_user_name(whatsapp,username, phone)
+                        result = request_user_name(whatsapp, username, phone)
                         if result :
                             message_sent, res = result
                         else :
@@ -222,7 +222,7 @@ class GroupAPI(MethodView):
                     send_user_profile(whatsapp, phone, name, address, ListSection, SectionRow)
             elif user_choice == "edit_details":
                 update_customer_state(phone, "collecting_name")
-                result = request_user_name(whatsapp, phone)
+                result = request_user_name(whatsapp, username, phone)
                 if result :
                     message_sent, res = result
                 else :
