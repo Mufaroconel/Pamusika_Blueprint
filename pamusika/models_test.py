@@ -53,7 +53,7 @@ def delete_all_customers():
         db.session.rollback()
         print(f"Error deleting customers: {e}")
 with app.app_context():
-    delete_all_customers()
+    # delete_all_customers()
     # cancel_last_order_by_phone(phone)
     # orders = get_active_orders_by_phone(phone)
 

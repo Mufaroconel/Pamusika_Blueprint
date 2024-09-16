@@ -14,6 +14,7 @@ from flask import flash, url_for, redirect
 from location_restriction import validate_address
 from functools import wraps
 from datetime import timedelta
+from flask_socketio import SocketIO, emit
 
 load_dotenv()
 wa_access_token = os.getenv("WA_TOKEN")
@@ -25,8 +26,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mumsikadatabase.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secretkey'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
-# Initialize the SQLAlchemy object with the app
-# Set up Flask-Migrate with the app and db
+socketio = SocketIO(app)
+
 migrate = Migrate(app, db)
 db.init_app(app)
 init_db(app)
@@ -340,6 +341,14 @@ class GroupAPI(MethodView):
                         vegetables_items=vegetables_items,
                         product_quantities=product_quantities
                         )
+
+                    socketio.emit('new_order', {
+                        'customer_id': customer_id,
+                        'total_amount': total_amount,
+                        'delivery_address': delivery_address,
+                        'fruits_items': fruits_items,
+                        'vegetables_items': vegetables_items
+                    })
                 if total_amount >= 0.50:
                     execute_order()  
                     result = confirm_order(whatsapp, phone, ListSection, SectionRow, total_amount, fruits_items, vegetables_items, product_quantities, customer_id, delivery_address)
