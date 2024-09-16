@@ -2,3 +2,5 @@ flask
 flask_sqlalchemy
 wa_cloud_py
 python-dotenv
+flask_migrate
+flask_socketio
