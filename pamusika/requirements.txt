@@ -1,3 +1,4 @@
 flask
 flask_sqlalchemy
 wa_cloud_py
+python-dotenv
