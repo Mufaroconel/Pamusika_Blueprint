@@ -9,7 +9,8 @@ import os
 from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category, cancel_last_order_by_phone, get_active_orders_by_phone, update_last_order_status_to_sent
 from models import db, Customer, init_db, Order, db_session
 from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled, notify_unavailable_service, notify_address_suggestion, order_amount_restriction
-from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
+# from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
+from wa_cloud_py.components.messages import ListSection, SectionRow, CatalogSection
 from flask_migrate import Migrate
 from flask import flash, url_for, redirect
 from location_restriction import validate_address
