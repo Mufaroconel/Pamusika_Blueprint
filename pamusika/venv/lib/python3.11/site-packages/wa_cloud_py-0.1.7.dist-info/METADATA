@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: wa_cloud_py
+Version: 0.1.7
+Summary: A Python library for sending WhatsApp messages using the WhatsApp Cloud API
+Download-URL: https://github.com/tanaka-mambinge/wa_cloud_py/archive/refs/tags/v0.1.1.tar.gz
+Author: Tanaka Mambinge
+Author-email: tmambingez@gmail.com
+Keywords: whatsapp,api,cloud,wa_cloud_py,python
+License-File: LICENSE.txt
+Requires-Dist: requests >=2.26.0
+Requires-Dist: loguru >=0.7.0
+Requires-Dist: pydantic >=2.0.0
+
