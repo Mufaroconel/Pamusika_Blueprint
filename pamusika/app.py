@@ -2,15 +2,15 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, s
 from flask_sqlalchemy import SQLAlchemy
 from flask.views import MethodView
 from wa_cloud_py import WhatsApp
-from wa_cloud_py.messages.types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
-# from wa_cloud_py.message_types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
+# from wa_cloud_py.messages.types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
+from wa_cloud_py.message_types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
 from dotenv import load_dotenv
 import os
 from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, add_customer_with_phone, update_customer_name, update_customer_username, update_customer_address, get_products, get_product_name_and_category, cancel_last_order_by_phone, get_active_orders_by_phone, update_last_order_status_to_sent
 from models import db, Customer, init_db, Order, db_session
 from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled, notify_unavailable_service, notify_address_suggestion, order_amount_restriction
-# from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
-from wa_cloud_py.components.messages import ListSection, SectionRow, CatalogSection
+from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
+# from wa_cloud_py.components.messages import ListSection, SectionRow, CatalogSection
 from flask_migrate import Migrate
 from flask import flash, url_for, redirect
 from location_restriction import validate_address
@@ -375,12 +375,8 @@ class GroupAPI(MethodView):
         
 app.add_url_rule('/webhook', view_func=GroupAPI.as_view('wa_webhook'))
 
-# if __name__ == "__main__":
-    # app.run(debug=True)
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(debug=True)
 
     with app.app_context():
             db.create_all()
