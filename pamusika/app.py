@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, s
 from flask_sqlalchemy import SQLAlchemy
 from flask.views import MethodView
 from wa_cloud_py import WhatsApp
-# from wa_cloud_py.messages.types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
+# from wa_cloud_py.messages.types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage # latest version 0.1.7
 from wa_cloud_py.message_types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage
 from dotenv import load_dotenv
 import os
@@ -10,7 +10,7 @@ from dboperations import add_customer, get_customer_by_phone, add_order, update_
 from models import db, Customer, init_db, Order, db_session
 from messages.app_logic_messages import greet_user_and_select_option, send_catalog, confirm_order, order_confirmed, make_changes, handle_cancellation, sent_to_packaging, packaging_received, order_packed, order_on_way, order_delivered, no_orders, tracking_issue, invalid_option, select_correct_option, request_user_name, request_address, notify_user_about_support_model, confirm_user_details, registration_successful, send_user_profile, order_cancelled, notify_unavailable_service, notify_address_suggestion, order_amount_restriction
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
-# from wa_cloud_py.components.messages import ListSection, SectionRow, CatalogSection
+# from wa_cloud_py.components.messages import ListSection, SectionRow, CatalogSection # latest version 0.1.7
 from flask_migrate import Migrate
 from flask import flash, url_for, redirect
 from location_restriction import validate_address
