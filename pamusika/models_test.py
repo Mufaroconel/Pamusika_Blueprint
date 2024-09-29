@@ -1,15 +1,38 @@
-from dboperations import add_customer, get_customer_by_phone, add_order, update_order_status, get_all_orders, get_filtered_orders, user_exists, delete_all_customers,query_orders, add_product, get_product_name_and_category, delete_all_orders, cancel_last_order_by_phone, get_active_orders_by_phone,delete_all_order_products
-from messages.app_logic_messages import order_packed, packaging_received, sent_to_packaging
+from dboperations import (
+    add_customer,
+    get_customer_by_phone,
+    add_order,
+    update_order_status,
+    get_all_orders,
+    get_filtered_orders,
+    user_exists,
+    delete_all_customers,
+    query_orders,
+    add_product,
+    get_product_name_and_category,
+    delete_all_orders,
+    cancel_last_order_by_phone,
+    get_active_orders_by_phone,
+    delete_all_order_products,
+)
+from messages.app_logic_messages import (
+    order_packed,
+    packaging_received,
+    sent_to_packaging,
+)
 from models import db, Customer, init_db, Order, order_products
 from flask import Flask, request, jsonify, render_template
 from flask_migrate import Migrate
 import json
 from wa_cloud_py import whatsapp
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mumsikadatabase.db'  # Use SQLite for simplicity
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'secretkey'
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    "sqlite:///musikadb.db"  # Use SQLite for simplicity
+)
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.secret_key = "secretkey"
 
 db.init_app(app)
 
@@ -34,15 +57,17 @@ product_quantities = [
 ]
 category_id = "smdx1imjv1"
 phone = "263776681617"
+
+
 def delete_all_customers():
     try:
         # Query all customers
         customers = Customer.query.all()
-        
+
         if customers:
             for customer in customers:
                 db.session.delete(customer)
-            
+
             # Commit the changes
             db.session.commit()
             print("All customers deleted successfully.")
@@ -52,6 +77,8 @@ def delete_all_customers():
         # Rollback in case of any error
         db.session.rollback()
         print(f"Error deleting customers: {e}")
+
+
 with app.app_context():
     # delete_all_customers()
     # cancel_last_order_by_phone(phone)
@@ -62,9 +89,7 @@ with app.app_context():
     # for order in orders :
     #     sent_to_packaging(whatsapp, phone, order, ListSection, SectionRow)
 
-
-
-    # for order in orders :    
+    # for order in orders :
     #     print(order.status)
 
     # cancel_last_order_by_phone(phone)
@@ -102,63 +127,63 @@ with app.app_context():
 #         print(f"Added product: {product['name']} - Category: {product['product_category']}")
 
 
-    # new_order = add_order(
-    # db=db,
-    # customer_id=customer_id,
-    # total_amount=total_amount,
-    # delivery_address=delivery_address,
-    # fruits_items=fruits_items,
-    # vegetables_items=vegetables_items,
-    # product_quantities=product_quantities
-    # )
-    # if new_order:
-    #     print(f"Order created with ID: {customer_id}")
+# new_order = add_order(
+# db=db,
+# customer_id=customer_id,
+# total_amount=total_amount,
+# delivery_address=delivery_address,
+# fruits_items=fruits_items,
+# vegetables_items=vegetables_items,
+# product_quantities=product_quantities
+# )
+# if new_order:
+#     print(f"Order created with ID: {customer_id}")
 
-    # orders = query_orders(customer_id=1, status="Sent to Packaging")
-    # for order in orders:
-    #     fruits_items_json = order.fruits_items
-    #     fruits_items = json.loads(fruits_items_json)
-    #     for item in fruits_items:
-    #         product_id = item['id']
-    #         quantity = item['quantity']
-    #         price = item['price']
-    #     print(f"{order} {order.total_amount}")
+# orders = query_orders(customer_id=1, status="Sent to Packaging")
+# for order in orders:
+#     fruits_items_json = order.fruits_items
+#     fruits_items = json.loads(fruits_items_json)
+#     for item in fruits_items:
+#         product_id = item['id']
+#         quantity = item['quantity']
+#         price = item['price']
+#     print(f"{order} {order.total_amount}")
 
-    # delete_all_customers()
-    # user_exist = get_customer_by_phone(phone)
-    # print(f"Does the user with phone number {user_exist.phone} and name {user_exist.name} exist? {'Yes' if user_exist else 'No'}")
+# delete_all_customers()
+# user_exist = get_customer_by_phone(phone)
+# print(f"Does the user with phone number {user_exist.phone} and name {user_exist.name} exist? {'Yes' if user_exist else 'No'}")
 
 
-    # add_customer = add_customer(phone, username, address, surname, name, latitude=None, longitude=None)
-    # customer = get_customer_by_phone(phone)
-    # order = add_order(phone, delivery_address, total_amount, fruits_items, vegetables_items)
-    # all_orders = get_all_orders()
-    # order = get_orders(phone)
-    # if all_orders :
-    #     for order in all_orders:
-    #         customer_id = order.customer_id
-    #         order_status = order.status
-    #     print (f"order found for {phone}")
-    # else:
-    #     print("order not found")
-    # update_order_status = update_order_status(4, "Packed")
-    # if customer:
-    #     """ if the customer is registered,return a greeting and the start of the conversational flow
+# add_customer = add_customer(phone, username, address, surname, name, latitude=None, longitude=None)
+# customer = get_customer_by_phone(phone)
+# order = add_order(phone, delivery_address, total_amount, fruits_items, vegetables_items)
+# all_orders = get_all_orders()
+# order = get_orders(phone)
+# if all_orders :
+#     for order in all_orders:
+#         customer_id = order.customer_id
+#         order_status = order.status
+#     print (f"order found for {phone}")
+# else:
+#     print("order not found")
+# update_order_status = update_order_status(4, "Packed")
+# if customer:
+#     """ if the customer is registered,return a greeting and the start of the conversational flow
 
-    #     return :
+#     return :
 
-    #     """
-    #     print(f"Customer Found: {customer.name} {customer.surname}, Username: {customer.username}")
-    # else:
-    #     """ handle the case where the customer is not registerd
-    #     notify the user to add their information and register
-    #     """
-    #     print("Customer not found.")
-    
-    # if add_customer:
-    #     print(f"Customer Added: {add_customer.name} {add_customer.surname}, Username: {add_customer.username}")
-    # else:
-    #     print("Customer not added.")
+#     """
+#     print(f"Customer Found: {customer.name} {customer.surname}, Username: {customer.username}")
+# else:
+#     """ handle the case where the customer is not registerd
+#     notify the user to add their information and register
+#     """
+#     print("Customer not found.")
+
+# if add_customer:
+#     print(f"Customer Added: {add_customer.name} {add_customer.surname}, Username: {add_customer.username}")
+# else:
+#     print("Customer not added.")
 
 #     from flask import request
 
@@ -169,7 +194,7 @@ with app.app_context():
 #         customer_name = request.args.get('customer_name')
 #         order_id = request.args.get('order_id')
 #         customer_id = request.args.get('customer_id')
-        
+
 #         # Fetch filtered orders based on the parameters, or all orders if no filters are applied
 #         if any([order_status, customer_name, order_id, customer_id]):
 #             orders = get_filtered_orders(order_status, customer_name, order_id, customer_id)
@@ -191,14 +216,14 @@ with app.app_context():
 #     def update_order_status(order_id):
 #         data = request.get_json()
 #         status = data.get('status')
-        
+
 #         if not status:
 #             return jsonify({'error': 'No status provided'}), 400
 
 #         order = Order.query.get_or_404(order_id)
 #         order.status = status
 #         db.session.commit()
-        
+
 #         return jsonify({'success': True})
 
 #     # def print_order(order):
@@ -213,7 +238,7 @@ with app.app_context():
 #                 #  print(f"Delivery Address: {order.delivery_address}\n")
 #     #     else:
 #     #         print("No orders found for this phone number.")
-    
+
 #     # print_order(order)
 
 #     # if update_order_status:

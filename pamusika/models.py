@@ -4,11 +4,15 @@ from datetime import datetime
 import json
 
 db = SQLAlchemy()
-db_session = db.session 
+db_session = db.session
+
+
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.String(15), unique=True, nullable=False)
-    username = db.Column(db.String(100), unique=True, nullable=True)  # Initially, this can be null
+    username = db.Column(
+        db.String(100), unique=True, nullable=True
+    )  # Initially, this can be null
     address = db.Column(db.String(255), nullable=True)  # Initially, this can be null
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
@@ -18,21 +22,30 @@ class Customer(db.Model):
     def __repr__(self):
         return f"<Customer {self.id} - Phone: {self.phone}, Username: {self.username}, Name: {self.name}, State: {self.state}>"
 
+
 class Product(db.Model):
-    id = db.Column(db.String(50), primary_key=True)  # Your internal product ID
+    id = db.Column(db.String(50), primary_key=True)
     meta_id = db.Column(db.String(100), unique=True, nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    currency = db.Column(db.String(3), nullable=False, default='USD')
+    cost_price = db.Column(db.Float, nullable=False)
+    selling_price = db.Column(db.Float, nullable=False)
+    reward_amount = db.Column(db.Float, default=0.0)
+    currency = db.Column(db.String(3), nullable=False, default="USD")
     availability = db.Column(db.Boolean, nullable=False, default=True)
-    product_category = db.Column(db.String(100), nullable=False)  # New category column
+    product_category = db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
-        return f'<Product {self.name} - Category: {self.product_category} - Meta ID: {self.meta_id} - Price: {self.price} {self.currency} - Available: {self.availability}>'
+        return (
+            f"<Product {self.name} - Category: {self.product_category} - "
+            f"Meta ID: {self.meta_id} - Cost Price: {self.cost_price} - "
+            f"Selling Price: {self.selling_price} - Reward: {self.reward_amount} {self.currency} - "
+            f"Available: {self.availability}>"
+        )
+
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)  # Assuming you have a Customer table
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"), nullable=False)
     order_date = db.Column(db.DateTime, nullable=False, default=datetime.now)
     status = db.Column(db.String(50), nullable=False, default="Pending")
     total_amount = db.Column(db.Float, nullable=True)
@@ -40,32 +53,93 @@ class Order(db.Model):
 
     # Store items as JSON-encoded strings
     fruits_items = db.Column(db.Text, nullable=True)  # JSON-encoded string for fruits
-    vegetables_items = db.Column(db.Text, nullable=True)  # JSON-encoded string for vegetables
+    vegetables_items = db.Column(
+        db.Text, nullable=True
+    )  # JSON-encoded string for vegetables
+
+    # New fields to store rewards
+    reward_amount = db.Column(
+        db.Float, nullable=False, default=0.0
+    )  # Total reward earned for this order
+    date = db.Column(
+        db.DateTime, nullable=False, default=datetime.now
+    )  # Date when reward was earned
 
     def set_fruits_items(self, items):
         """Set the fruits items by encoding them as a JSON string."""
         self.fruits_items = json.dumps(items)
-    
+
     def get_fruits_items(self):
         """Get the fruits items by decoding the JSON string."""
         return json.loads(self.fruits_items)
-    
+
     def set_vegetables_items(self, items):
         """Set the vegetables items by encoding them as a JSON string."""
         self.vegetables_items = json.dumps(items)
-    
+
     def get_vegetables_items(self):
         """Get the vegetables items by decoding the JSON string."""
         return json.loads(self.vegetables_items)
-    
-    def __repr__(self):
-        return f'<Order {self.id} - Status: {self.status},Customer_id: {self.customer_id} , Order Date: {self.order_date}, Total: {self.total_amount}, Delivery Address: {self.delivery_address}, Fruits: {self.fruits_items}, Vegetables: {self.vegetables_items}>'
 
-order_products = db.Table('order_products',
-    db.Column('order_id', db.Integer, db.ForeignKey('order.id'), primary_key=True),
-    db.Column('product_id', db.String(50), db.ForeignKey('product.id'), primary_key=True),
-    db.Column('quantity', db.Integer, nullable=False)
+    def __repr__(self):
+        return (
+            f"<Order {self.id} - Status: {self.status}, Customer ID: {self.customer_id}, "
+            f"Order Date: {self.order_date}, Total: {self.total_amount}, "
+            f"Delivery Address: {self.delivery_address}, Reward Amount: {self.reward_amount}, "
+            f"Date: {self.date}>"
+        )
+
+
+order_products = db.Table(
+    "order_products",
+    db.Column("order_id", db.Integer, db.ForeignKey("order.id"), primary_key=True),
+    db.Column(
+        "product_id", db.String(50), db.ForeignKey("product.id"), primary_key=True
+    ),
+    db.Column("quantity", db.Integer, nullable=False),
 )
+
+
+class CustomerReward(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"), nullable=False)
+    reward_amount = db.Column(db.Float, nullable=False, default=0.0)
+
+    customer = db.relationship("Customer", backref=db.backref("rewards", lazy=True))
+
+    def __repr__(self):
+        return f"<CustomerReward {self.id} - Customer ID: {self.customer_id}, Reward Amount: {self.reward_amount}>"
+
+
+class Withdrawal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"), nullable=False)
+    amount = db.Column(db.Float, nullable=False)  # Amount to be withdrawn
+    status = db.Column(
+        db.String(50), nullable=False, default="Pending"
+    )  # Pending, Confirmed, etc.
+    initiated_at = db.Column(
+        db.DateTime, nullable=False, default=datetime.now
+    )  # Time of initiation
+    confirmed_at = db.Column(
+        db.DateTime, nullable=True
+    )  # Time of confirmation (nullable since not confirmed yet)
+    method = db.Column(
+        db.String(50), nullable=False, default="Payment"
+    )  # Initiation method (e.g., Payment, Withdrawal)
+
+    # Relationship to Customer
+    customer = db.relationship("Customer", backref=db.backref("withdrawals", lazy=True))
+
+    def __repr__(self):
+        return (
+            f"<Withdrawal {self.id} - Customer ID: {self.customer_id}, "
+            f"Amount: {self.amount}, Status: {self.status}, "
+            f"Initiated At: {self.initiated_at}, Confirmed At: {self.confirmed_at}, "
+            f"Method: {self.method}>"
+        )
+
+
 def init_db(app):
-        with app.app_context():
-            db.create_all()
+    with app.app_context():
+        db.create_all()

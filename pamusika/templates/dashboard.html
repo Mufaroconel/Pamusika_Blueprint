@@ -79,10 +79,11 @@
             <div class="col-md-3 sidebar">
                 <div class="list-group" id="list-tab" role="tablist">
                     <a class="list-group-item list-group-item-action active" id="list-orders-list" data-bs-toggle="tab" href="#list-orders" role="tab" aria-controls="orders">Orders</a>
-                    <a class="list-group-item list-group-item-action" id="list-products-list" data-bs-toggle="tab" href="#list-products" role="tab" aria-controls="products">Products</a>
+                    <a class="list-group-item list-group-item-action" id="list-products-list" href="#" role="tab" aria-controls="products" onclick="redirectToProducts()">Products</a>
                     <a class="list-group-item list-group-item-action" id="list-users-list" data-bs-toggle="tab" href="#list-users" role="tab" aria-controls="users">Users</a>
                     <a class="list-group-item list-group-item-action" id="list-reports-list" data-bs-toggle="tab" href="#list-reports" role="tab" aria-controls="reports">Reports</a>
                     <a class="list-group-item list-group-item-action" id="list-settings-list" data-bs-toggle="tab" href="#list-settings" role="tab" aria-controls="settings">Settings</a>
+                    <a class="list-group-item list-group-item-action" id="list-rewards-list" href="#" role="tab" aria-controls="rewards" onclick="redirectToRewards()">Rewards</a>
                 </div>
             </div>
 
@@ -377,5 +378,19 @@
             orderList.appendChild(newOrder);
         });
     </script>    
+    <script type="text/javascript">
+        function redirectToProducts() {
+            window.location.href = "{{ url_for('manage_products') }}";
+        }
+    </script>
+    <script>
+        function redirectToProducts() {
+            window.location.href = "{{ url_for('manage_products') }}";
+        }
+    
+        function redirectToRewards() {
+            window.location.href = "{{ url_for('view_rewards') }}";  // Flask route for rewards
+        }
+    </script>
 </body>
 </html>

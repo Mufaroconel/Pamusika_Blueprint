@@ -1,7 +1,8 @@
 import json
 from dboperations import get_available_products_by_category
 
-def request_user_name(whatsapp,username, phone):
+
+def request_user_name(whatsapp, username, phone):
     try:
         # Send the text requesting the user's full name
         whatsapp.send_text(
@@ -13,7 +14,7 @@ def request_user_name(whatsapp,username, phone):
         )
         # Return True and success message on successful execution
         return True, "Request for user name sent successfully."
-    
+
     except Exception as e:
         # Catch any exception and return False with the error message
         return False, f"Failed to request user name: {str(e)}"
@@ -31,16 +32,17 @@ def request_address(whatsapp, phone_number):
                 "2. Street Name\n"
                 "3. Suburb\n\n"
                 "For example:\n"
-                '69 Jiri Crescent, Mufakose\n\n'
+                "69 Jiri Crescent, Mufakose\n\n"
                 "Thank you!"
             ),
         )
         # Return True and success message on successful execution
         return True, "Request for delivery address sent successfully."
-    
+
     except Exception as e:
         # Catch any exception and return False with the error message
         return False, f"Failed to request delivery address: {str(e)}"
+
 
 def notify_address_suggestion(whatsapp, phone_number, suggestion):
     try:
@@ -60,6 +62,7 @@ def notify_address_suggestion(whatsapp, phone_number, suggestion):
         # Catch any exception and return False with the error message
         return False, f"Failed to send address suggestion: {str(e)}"
 
+
 def notify_unavailable_service(whatsapp, phone_number):
     try:
         # Send the text notifying the user that services may be unavailable or address incorrect
@@ -72,12 +75,15 @@ def notify_unavailable_service(whatsapp, phone_number):
         )
         # Return True and success message on successful execution
         return True, "Notification about service availability sent successfully."
-    
+
     except Exception as e:
         # Catch any exception and return False with the error message
         return False, f"Failed to notify about service unavailability: {str(e)}"
 
-def confirm_user_details(whatsapp, phone_number, username, name, address, ListSection, SectionRow):
+
+def confirm_user_details(
+    whatsapp, phone_number, username, name, address, ListSection, SectionRow
+):
     try:
         whatsapp.send_interactive_list(
             to=phone_number,
@@ -98,18 +104,25 @@ def confirm_user_details(whatsapp, phone_number, username, name, address, ListSe
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="confirm_user_details", title="Confirm", description="Confirm user information."),
-                        SectionRow(id="edit_details", title="Edit Details", description="Update your name or address."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="confirm_user_details",
+                            title="Confirm",
+                            description="Confirm user information.",
+                        ),
+                        SectionRow(
+                            id="edit_details",
+                            title="Edit Details",
+                            description="Update your name or address.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Interactive list sent successfully."
     except Exception as e:
         return False, f"Failed to send interactive list: {str(e)}"
+
 
 def registration_successful(whatsapp, phone_number, ListSection, SectionRow):
     try:
@@ -130,10 +143,26 @@ def registration_successful(whatsapp, phone_number, ListSection, SectionRow):
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Browse fresh fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Track your delivery status."),
-                        SectionRow(id="customer_support", title="Customer Support", description="Need assistance? We're here to help."),
-                        SectionRow(id="user_profile", title="User profile", description="View and update your account details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Browse fresh fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Track your delivery status.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="Need assistance? We're here to help.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and update your account details.",
+                        ),
                     ],
                 ),
             ],
@@ -143,13 +172,12 @@ def registration_successful(whatsapp, phone_number, ListSection, SectionRow):
         return False, f"Failed to send interactive list: {str(e)}"
 
 
-
 def greet_user_and_select_option(whatsapp, phone, username, ListSection, SectionRow):
     try:
         # Send an interactive list message
         whatsapp.send_interactive_list(
             to=phone,
-            header= f"Hello {username} 🥭 Welcome to Pamusika!",
+            header=f"Hello {username} 🥭 Welcome to Pamusika!",
             body=(
                 "Explore fresh fruits and vegetables from local farms, delivered to your doorstep. 🥬🍅\n\n"
                 "Choose an option to get started:\n"
@@ -163,21 +191,38 @@ def greet_user_and_select_option(whatsapp, phone, username, ListSection, Section
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Shop fresh fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Track your delivery status."),
-                        SectionRow(id="customer_support", title="Customer Support", description="Get assistance if needed."),
-                        SectionRow(id="user_profile", title="User Profile", description="View or update your details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Shop fresh fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Track your delivery status.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="Get assistance if needed.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User Profile",
+                            description="View or update your details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         # Return True if successful
         return True, "Message sent successfully."
-    
+
     except Exception as e:
         # Return False and error message if an exception occurs
         return False, f"Failed to send message: {str(e)}"
+
 
 def notify_user_about_support_model(whatsapp, phone_number, ListSection, SectionRow):
     try:
@@ -195,14 +240,30 @@ def notify_user_about_support_model(whatsapp, phone_number, ListSection, Section
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Interactive list sent successfully."
     except Exception as e:
@@ -216,10 +277,7 @@ def send_catalog(phone_number, catalog_id, whatsapp, CatalogSection, db_session)
 
         # Create CatalogSection dynamically from the product categories and meta IDs
         product_sections = [
-            CatalogSection(
-                title=category,
-                retailer_product_ids=meta_ids
-            )
+            CatalogSection(title=category, retailer_product_ids=meta_ids)
             for category, meta_ids in catalog_sections.items()
         ]
 
@@ -233,58 +291,95 @@ def send_catalog(phone_number, catalog_id, whatsapp, CatalogSection, db_session)
                 "Musika in Mufakose Magandanga brings you the freshest produce, straight from the farm to your table! 🍅🍍"
             ),
             product_sections=product_sections,
-            footer="Enjoy free delivery on all orders today! 🚚"
+            footer="Enjoy free delivery on all orders today! 🚚",
         )
 
         # Return True if successful
         return True, "Catalog sent successfully."
-    
+
     except Exception as e:
         # Handle the exception and return the error
         return False, f"Failed to send catalog: {str(e)}"
- 
-def confirm_order(whatsapp, phone_number, ListSection, SectionRow, total_amount, fruits_items, vegetables_items, product_quantities, customer_id, delivery_address):
+
+
+def confirm_order_with_payment(
+    whatsapp,
+    phone_number,
+    ListSection,
+    SectionRow,
+    total_amount,
+    total_reward,
+    fruits_items,
+    vegetables_items,
+    product_quantities,
+    username,
+    delivery_address,
+):
     try:
         # Convert lists of items into formatted strings
-        fruits_items_str = "\n".join([f"{item['product']} * {item['quantity']} @{item['price']} each" for item in fruits_items])
-        vegetables_items_str = "\n".join([f"{item['product']} * {item['quantity']} @{item['price']} each" for item in vegetables_items])
+        fruits_items_str = "\n".join(
+            [
+                f"{item['product']} * {item['quantity']} @{item['price']} each"
+                for item in fruits_items
+            ]
+        )
+        vegetables_items_str = "\n".join(
+            [
+                f"{item['product']} * {item['quantity']} @{item['price']} each"
+                for item in vegetables_items
+            ]
+        )
 
-        # Send the interactive list for order confirmation
+        # Send the interactive list for order confirmation with payment method selection
         whatsapp.send_interactive_list(
             to=phone_number,
-            header="🥭 Confirm Your Order 📝",
+            header="🥭 Confirm Your Order",
             body=(
-                f"Here's a summary of your order:\n\n"
-                f"Customer ID: {customer_id}\n\n"
-                f"Total Amount: ${total_amount:.2f}\n\n"
+                f"Hi {username},\n\n"
+                f"Here is a summary of your order:\n\n"
+                f"Total Amount: ${total_amount:.2f}\n"
+                f"Total Reward Balance: ${total_reward:.2f}\n\n"
                 f"Delivery Address: {delivery_address}\n\n"
                 f"Fruits Items:\n{fruits_items_str}\n\n"
                 f"Vegetables Items:\n{vegetables_items_str}\n\n"
-                "Would you like to confirm your order, make changes, or cancel? Choose an option below to continue:\n"
-                "1. ✅ *Confirm Order*: Proceed with the current selection and finalize your purchase.\n"
-                "2. ✏️ *Make Changes*: Review and modify your order before finalizing.\n"
-                "3. ❌ *Cancel*: Abort the current order process and start over."
+                "Please confirm your order and select a payment method to proceed."
             ),
-            button="Select an Option",
+            button="Select Payment",
             sections=[
                 ListSection(
-                    title="Order Confirmation",
+                    title="Payment Options",
                     rows=[
-                        SectionRow(id="confirm_order", title="Confirm Order", description="Finalize and place your order."),
-                        SectionRow(id="edit_order", title="Make Changes", description="Modify your selection before finalizing."),
-                        SectionRow(id="cancel_order", title="Cancel", description="Abort the order process and restart."),
+                        SectionRow(
+                            id="pay_with_cash",
+                            title="Cash on Delivery",  # 19 characters
+                            description="Pay with cash on delivery.",
+                        ),
+                        SectionRow(
+                            id="pay_with_rewards",
+                            title="Use Rewards",  # Shortened to 11 characters
+                            description="Use your rewards balance.",
+                        ),
+                        SectionRow(
+                            id="edit_order",
+                            title="Make Changes",  # 12 characters
+                            description="Modify your order before confirming.",
+                        ),
+                        SectionRow(
+                            id="cancel_order",
+                            title="Cancel Order",  # 12 characters
+                            description="Abort the order and restart.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="Please select a payment method.",
         )
         # Return True and success message on successful execution
-        return True, "Order confirmation message sent successfully."
+        return True, "Order confirmation with payment method sent successfully."
 
     except Exception as e:
         # Catch any exception and return False with the error message
         return False, f"Failed to send order confirmation: {str(e)}"
-
 
 
 def order_confirmed(whatsapp, phone_number, ListSection, SectionRow):
@@ -306,23 +401,62 @@ def order_confirmed(whatsapp, phone_number, ListSection, SectionRow):
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Order confirmation message sent successfully."
     except Exception as e:
         return False, f"Failed to send order confirmation message: {str(e)}"
-def order_amount_restriction(whatsapp, phone_number, ListSection, SectionRow, total_amount, fruits_items, vegetables_items, product_quantities, customer_id, delivery_address):
+
+
+def order_amount_restriction(
+    whatsapp,
+    phone_number,
+    ListSection,
+    SectionRow,
+    total_amount,
+    fruits_items,
+    vegetables_items,
+    product_quantities,
+    customer_id,
+    delivery_address,
+):
     try:
         # Convert lists of items into formatted strings
-        fruits_items_str = "\n".join([f"{item['product']} * {item['quantity']} @{item['price']} each" for item in fruits_items])
-        vegetables_items_str = "\n".join([f"{item['product']} * {item['quantity']} @{item['price']} each" for item in vegetables_items])
+        fruits_items_str = "\n".join(
+            [
+                f"{item['product']} * {item['quantity']} @{item['price']} each"
+                for item in fruits_items
+            ]
+        )
+        vegetables_items_str = "\n".join(
+            [
+                f"{item['product']} * {item['quantity']} @{item['price']} each"
+                for item in vegetables_items
+            ]
+        )
 
         # Send the interactive list for order confirmation
         whatsapp.send_interactive_list(
@@ -337,7 +471,6 @@ def order_amount_restriction(whatsapp, phone_number, ListSection, SectionRow, to
                 f"Vegetables Items:\n{vegetables_items_str}\n\n"
                 "Unfortunately, you cannot purchase items priced less than 50 cents.\n "
                 "Please review your order and make necessary adjustments before proceeding.\n\n"
-
                 "1. ✏️ *Make Changes*: Review and modify your order before finalizing.\n"
                 "2. ❌ *Cancel*: Abort the current order process and start over."
             ),
@@ -346,12 +479,20 @@ def order_amount_restriction(whatsapp, phone_number, ListSection, SectionRow, to
                 ListSection(
                     title="Order Confirmation",
                     rows=[
-                        SectionRow(id="edit_order", title="Make Changes", description="Modify your selection before finalizing."),
-                        SectionRow(id="cancel_order", title="Cancel", description="Abort the order process and restart."),
+                        SectionRow(
+                            id="edit_order",
+                            title="Make Changes",
+                            description="Modify your selection before finalizing.",
+                        ),
+                        SectionRow(
+                            id="cancel_order",
+                            title="Cancel",
+                            description="Abort the order process and restart.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         # Return True and success message on successful execution
         return True, "Order confirmation message sent successfully."
@@ -359,6 +500,7 @@ def order_amount_restriction(whatsapp, phone_number, ListSection, SectionRow, to
     except Exception as e:
         # Catch any exception and return False with the error message
         return False, f"Failed to send order confirmation: {str(e)}"
+
 
 def order_cancelled(whatsapp, phone_number, ListSection, SectionRow):
     try:
@@ -377,42 +519,69 @@ def order_cancelled(whatsapp, phone_number, ListSection, SectionRow):
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User Profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User Profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Order cancellation message sent successfully."
     except Exception as e:
         return False, f"Failed to send order cancellation message: {str(e)}"
+
+
 def make_changes(phone_number, catalog_id, whatsapp, CatalogSection):
     try:
         whatsapp.send_catalog_product_list(
-            to=phone_number,  
-            catalog_id=catalog_id, 
+            to=phone_number,
+            catalog_id=catalog_id,
             header="🍎🥦 Available Fresh Produce at Musika 🥕🍊",
             body="🌟 No worries! Let's make those changes to your order. 🛒\n\nMusika in Mufakose Magandanga brings you the freshest produce, straight from the farm to your table! 🍅🍍",
             product_sections=[
                 CatalogSection(
-                    title="Fresh Fruits", 
-                    retailer_product_ids=["smdx1imjv1", "yv12oorgoj", "19tdnzbn2k"]
+                    title="Fresh Fruits",
+                    retailer_product_ids=["smdx1imjv1", "yv12oorgoj", "19tdnzbn2k"],
                 ),
                 CatalogSection(
-                    title="Vegetables", 
-                    retailer_product_ids=["0oyglqcnhr", "aqs54sejq9", "ixxuzk2ll2", "rq7l4wd0vr", 
-                                          "kaif9wtpmq", "4jenulsjmg", "p95w970hrf", "ddljtudt75"]
+                    title="Vegetables",
+                    retailer_product_ids=[
+                        "0oyglqcnhr",
+                        "aqs54sejq9",
+                        "ixxuzk2ll2",
+                        "rq7l4wd0vr",
+                        "kaif9wtpmq",
+                        "4jenulsjmg",
+                        "p95w970hrf",
+                        "ddljtudt75",
+                    ],
                 ),
             ],
-            footer="Enjoy free delivery on all orders today! 🚚"
+            footer="Enjoy free delivery on all orders today! 🚚",
         )
         return True, "Product catalog sent successfully."
     except Exception as e:
         return False, f"Failed to send product catalog: {str(e)}"
-    
+
+
 def handle_cancellation(whatsapp, phone_number, ListSection, SectionRow):
     try:
         whatsapp.send_interactive_list(
@@ -424,14 +593,30 @@ def handle_cancellation(whatsapp, phone_number, ListSection, SectionRow):
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Cancellation message sent successfully."
     except Exception as e:
@@ -444,6 +629,7 @@ def format_items(items):
     for item in items:
         formatted_items += f"{item['product']} (x{item['quantity']}) - ${item['price'] * item['quantity']}\n"
     return formatted_items.strip()
+
 
 def sent_to_packaging(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
@@ -470,14 +656,30 @@ def sent_to_packaging(whatsapp, phone_number, order, ListSection, SectionRow):
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Packaging status message sent successfully."
     except Exception as e:
@@ -492,34 +694,53 @@ def packaging_received(whatsapp, phone_number, order, ListSection, SectionRow):
 
         # Format fruits and vegetables
         fruits = format_items(fruits) if order.fruits_items else "No fruits"
-        vegetables = format_items(vegetables) if order.vegetables_items else "No vegetables"
-        
+        vegetables = (
+            format_items(vegetables) if order.vegetables_items else "No vegetables"
+        )
+
         # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
             body=f"🎉 Good news! Your order (ID: {order.id}) has been received by packaging. 🛠️\n\n"
-                 f"🧾 *Total Amount*: ${order.total_amount}\n"
-                 f"📅 *Order Date*: {order.order_date}\n"
-                 f"🍎 *Fruits*: {fruits}\n"
-                 f"🥦 *Vegetables*: {vegetables}",
+            f"🧾 *Total Amount*: ${order.total_amount}\n"
+            f"📅 *Order Date*: {order.order_date}\n"
+            f"🍎 *Fruits*: {fruits}\n"
+            f"🥦 *Vegetables*: {vegetables}",
             button="Select an Option",
             sections=[
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Packaging received status message sent successfully."
     except Exception as e:
         return False, f"Failed to send packaging received message: {str(e)}"
+
 
 def order_packed(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
@@ -529,8 +750,10 @@ def order_packed(whatsapp, phone_number, order, ListSection, SectionRow):
 
         # Format fruits and vegetables
         fruits = format_items(fruits) if order.fruits_items else "No fruits"
-        vegetables = format_items(vegetables) if order.vegetables_items else "No vegetables"
-        
+        vegetables = (
+            format_items(vegetables) if order.vegetables_items else "No vegetables"
+        )
+
         # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
@@ -547,14 +770,30 @@ def order_packed(whatsapp, phone_number, order, ListSection, SectionRow):
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User Profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User Profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Packed order status message sent successfully."
     except Exception as e:
@@ -569,30 +808,48 @@ def order_on_way(whatsapp, phone_number, order, ListSection, SectionRow):
 
         # Format fruits and vegetables
         fruits = format_items(fruits) if order.fruits_items else "No fruits"
-        vegetables = format_items(vegetables) if order.vegetables_items else "No vegetables"
-        
+        vegetables = (
+            format_items(vegetables) if order.vegetables_items else "No vegetables"
+        )
+
         # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
             body=f"🚚 Your order (ID: {order.id}) is on the way! It should arrive shortly. 🌟\n\n"
-                 f"🧾 *Total Amount*: ${order.total_amount}\n"
-                 f"📅 *Order Date*: {order.order_date}\n"
-                 f"🍎 *Fruits*: {fruits}\n"
-                 f"🥦 *Vegetables*: {vegetables}",
+            f"🧾 *Total Amount*: ${order.total_amount}\n"
+            f"📅 *Order Date*: {order.order_date}\n"
+            f"🍎 *Fruits*: {fruits}\n"
+            f"🥦 *Vegetables*: {vegetables}",
             button="Select an Option",
             sections=[
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Order on the way status message sent successfully."
     except Exception as e:
@@ -607,34 +864,53 @@ def order_delivered(whatsapp, phone_number, order, ListSection, SectionRow):
 
         # Format fruits and vegetables
         fruits = format_items(fruits) if order.fruits_items else "No fruits"
-        vegetables = format_items(vegetables) if order.vegetables_items else "No vegetables"
-        
+        vegetables = (
+            format_items(vegetables) if order.vegetables_items else "No vegetables"
+        )
+
         # Send WhatsApp message
         whatsapp.send_interactive_list(
             to=phone_number,
             header="📦 Order Status",
             body=f"🎉 Your order (ID: {order.id}) has been delivered! Enjoy your purchase. 😊\n\n"
-                 f"🧾 *Total Amount*: ${order.total_amount}\n"
-                 f"📅 *Order Date*: {order.order_date}\n"
-                 f"🍎 *Fruits*: {fruits}\n"
-                 f"🥦 *Vegetables*: {vegetables}",
+            f"🧾 *Total Amount*: ${order.total_amount}\n"
+            f"📅 *Order Date*: {order.order_date}\n"
+            f"🍎 *Fruits*: {fruits}\n"
+            f"🥦 *Vegetables*: {vegetables}",
             button="Select an Option",
             sections=[
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
         return True, "Order delivered status message sent successfully."
     except Exception as e:
         return False, f"Failed to send order delivered message: {str(e)}"
+
 
 def no_orders(whatsapp, phone_number, ListSection, SectionRow):
     try:
@@ -645,23 +921,40 @@ def no_orders(whatsapp, phone_number, ListSection, SectionRow):
                 "🤔 Hmm, it looks like you don't have any orders at the moment.\n"
                 "🛒 Do you wish to make any purchases or need assistance with something else?\n"
                 "📞 You can always start by placing an order or contacting customer support."
-            ),                                                                                                                                                                          
+            ),
             button="Select an Option",
             sections=[
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
     except Exception as e:
         print(f"Error sending no orders message: {e}")
+
 
 def tracking_issue(whatsapp, phone_number, ListSection, SectionRow):
     try:
@@ -674,17 +967,34 @@ def tracking_issue(whatsapp, phone_number, ListSection, SectionRow):
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
     except Exception as e:
         print(f"Error sending tracking issue message: {e}")
+
 
 def invalid_option(whatsapp, phone_number, ListSection, SectionRow):
     try:
@@ -697,17 +1007,34 @@ def invalid_option(whatsapp, phone_number, ListSection, SectionRow):
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
     except Exception as e:
         print(f"Error sending invalid option message: {e}")
+
 
 def select_correct_option(whatsapp, phone_number, ListSection, SectionRow):
     try:
@@ -729,28 +1056,56 @@ def select_correct_option(whatsapp, phone_number, ListSection, SectionRow):
                 ListSection(
                     title="Your Next Steps",
                     rows=[
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
-                        SectionRow(id="user_profile", title="User profile", description="View and Edit Your Details."),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User profile",
+                            description="View and Edit Your Details.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
     except Exception as e:
         print(f"Error sending select correct option message: {e}")
 
-def send_user_profile(whatsapp, phone_number, name, address, ListSection, SectionRow):
+
+def send_user_profile(
+    whatsapp,
+    phone_number,
+    username,
+    name,
+    total_rewards_earned,
+    address,
+    ListSection,
+    SectionRow,
+):
     try:
         whatsapp.send_interactive_list(
             to=phone_number,
             header="🛠️ Your Profile",
             body=(
-                f"Hi {name},\n\n"
+                f"Hi {username},\n\n"
                 f"Here are your current details:\n"
                 f"*Full Name*: {name}\n"
                 f"*Address*: {address}\n\n"
+                f"Here are your total rewards earned: "
+                f"*${total_rewards_earned:.2f}*\n"
                 "What would you like to do next?"
             ),
             button="Choose an Option",
@@ -758,14 +1113,325 @@ def send_user_profile(whatsapp, phone_number, name, address, ListSection, Sectio
                 ListSection(
                     title="Profile Actions",
                     rows=[
-                        SectionRow(id="edit_details", title="Edit Details", description="Update your name or address."),
-                        SectionRow(id="place_order", title="Place an Order", description="Pick from our freshest selection of fruits and vegetables."),
-                        SectionRow(id="track_order", title="Track Your Order", description="Stay updated on your delivery's progress."),
-                        SectionRow(id="customer_support", title="Customer Support", description="We’re here to assist with any questions."),
+                        SectionRow(
+                            id="edit_details",
+                            title="Edit Details",
+                            description="Update your name or address.",
+                        ),
+                        SectionRow(
+                            id="withdraw_reward",
+                            title="Withdraw Reward",
+                            description="Initiate a reward withdrawal request.",
+                        ),
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Pick from our freshest selection of fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Stay updated on your delivery's progress.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
                     ],
                 ),
             ],
-            footer="#MufakoseHarvest #MagandangaDelights"
+            footer="#MufakoseHarvest #MagandangaDelights",
         )
     except Exception as e:
         print(f"Error sending user profile message: {e}")
+
+
+def insufficient_balance_notification(
+    whatsapp, phone_number, username, reward_balance, ListSection, SectionRow
+):
+    try:
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="⚠️ Insufficient Balance",
+            body=(
+                f"Hi { username },\n\n"
+                "Sorry!! You have insufficient balance to proceed with the withdrawal.\n"
+                f"Your current balance is *${reward_balance:.2f}.*\n"
+                "Buy more with Musika and earn more rewards to qualify for a withdrawal.\n\n"
+                "Please enter a valid withdrawal amount or choose from the options below:"
+            ),
+            button="Choose an Option",
+            sections=[
+                ListSection(
+                    title="Account Options",
+                    rows=[
+                        SectionRow(
+                            id="exit_withdrawal",
+                            title="Exit Withdrawal",
+                            description="Cancel the withdrawal process.",
+                        ),
+                        SectionRow(
+                            id="check_balance",
+                            title="Check Balance",
+                            description="View your current balance.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="Thank you for using our service!",
+        )
+        return True, "Insufficient balance message sent successfully."
+    except Exception as e:
+        return False, f"Failed to send insufficient balance message: {str(e)}"
+
+
+def minimum_withdrawal_warning(
+    whatsapp, phone_number, username, ListSection, SectionRow
+):
+    try:
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="⚠️ Minimum Withdrawal",
+            body=(
+                f"Hi {username},\n\n"
+                "Sorry!! The minimum withdrawal amount is *$1*.\n"
+                "Buy more with Musika and earn more rewards to qualify for a withdrawal.\n\n"
+                "Please enter a valid amount or choose from the options below:"
+            ),
+            button="Choose an Option",
+            sections=[
+                ListSection(
+                    title="Withdrawal Options",
+                    rows=[
+                        SectionRow(
+                            id="exit_withdrawal",
+                            title="Exit Withdrawal",
+                            description="Cancel the withdrawal process.",
+                        ),
+                        SectionRow(
+                            id="check_balance",
+                            title="Check Balance",
+                            description="View your current balance.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="Thank you for using our service!",
+        )
+        return True, "Minimum withdrawal warning sent successfully."
+    except Exception as e:
+        return False, f"Failed to send minimum withdrawal warning: {str(e)}"
+
+
+def exit_withdrawal_message(whatsapp, phone, username, ListSection, SectionRow):
+    try:
+        # Send an interactive list message
+        whatsapp.send_interactive_list(
+            to=phone,
+            header=f"Goodbye {username} 👋",
+            body=(
+                "You have successfully exited the withdrawal process.\n\n"
+                "You can still purchase fresh fruits and vegetables using the options below:\n"
+                "1. 🛒 *Place an Order*: Shop fresh produce.\n"
+                "2. 🚚 *Track Your Order*: Follow your delivery.\n"
+                "3. 🛠️ *Customer Support*: Get help if needed.\n"
+                "4. 🧑‍💼 *Profile*: View and update your details."
+            ),
+            button="Select an Option",
+            sections=[
+                ListSection(
+                    title="Your Next Steps",
+                    rows=[
+                        SectionRow(
+                            id="place_order",
+                            title="Place an Order",
+                            description="Shop fresh fruits and vegetables.",
+                        ),
+                        SectionRow(
+                            id="track_order",
+                            title="Track Your Order",
+                            description="Track your delivery status.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="Get assistance if needed.",
+                        ),
+                        SectionRow(
+                            id="user_profile",
+                            title="User Profile",
+                            description="View or update your details.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="#MufakoseHarvest #MagandangaDelights",
+        )
+        # Return True if successful
+        return True, "Exit withdrawal message sent successfully."
+
+    except Exception as e:
+        # Return False and error message if an exception occurs
+        return False, f"Failed to send exit withdrawal message: {str(e)}"
+
+
+def confirm_uwithdrawal(
+    whatsapp,
+    phone_number,
+    username,
+    address,
+    amount_to_withdraw,
+    ListSection,
+    SectionRow,
+):
+    try:
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="💵 Confirm Your Withdrawal",
+            body=(
+                f"Hi {username},\n\n"
+                f"You have requested to withdraw *${amount_to_withdraw:.2f}*.\n\n"
+                "Please confirm that your delivery address is correct as cash will be delivered to your doorstep:\n"
+                f"*Delivery Address*: {address}\n\n"
+                "If everything looks good, please select an option below to proceed with the withdrawal:\n"
+                "1. ✅ *Confirm Withdrawal*: Confirm your withdrawal and cash delivery.\n"
+                "2. 📝 *Edit Address*: Update your address before proceeding.\n"
+                "3. 💵 *Edit Amount*: Change the amount you want to withdraw."
+            ),
+            button="Select an Option",
+            sections=[
+                ListSection(
+                    title="Your Next Steps",
+                    rows=[
+                        SectionRow(
+                            id="confirm_withdrawal",
+                            title="Confirm Withdrawal",
+                            description=f"Withdraw ${amount_to_withdraw:.2f} and deliver to your address.",
+                        ),
+                        SectionRow(
+                            id="edit_address",
+                            title="Edit Address",
+                            description="Update your address for cash delivery.",
+                        ),
+                        SectionRow(
+                            id="edit_amount",
+                            title="Edit Withdrawal Amount",
+                            description="Change the amount you want to withdraw.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="Ensure your address and withdrawal amount are correct.",
+        )
+        return True, "Interactive list sent successfully."
+    except Exception as e:
+        return False, f"Failed to send interactive list: {str(e)}"
+
+
+def rewards_balance(whatsapp, phone_number, username, balance, ListSection, SectionRow):
+    try:
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="💵 Your Current Balance",
+            body=(
+                f"Hi {username},\n\n"
+                f"Your current balance is *${balance:.2f}*.\n\n"
+                "Please enter an amount that is within your available balance to proceed with the withdrawal.\n\n"
+            ),
+            button="Choose an Option",
+            sections=[
+                ListSection(
+                    title="Withdrawal Options",
+                    rows=[
+                        SectionRow(
+                            id="exit_withdrawal",
+                            title="Exit Withdrawal",
+                            description="Cancel the withdrawal process.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="Ensure the amount is within your balance to avoid issues.",
+        )
+        return True, "Balance notification sent successfully."
+    except Exception as e:
+        return False, f"Failed to send balance notification: {str(e)}"
+
+
+def send_edit_user_details_prompt(
+    whatsapp, phone_number, username, name, address, ListSection, SectionRow
+):
+    try:
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="📝 Update Your Details",
+            body=(
+                f"Hi {username},\n\n"
+                "You have chosen to update your details.\n"
+                "What would you like to update?\n\n"
+                f"*Current Name*: {name}\n"
+                f"*Current Address*: {address}\n\n"
+                "Please choose an option below to edit your name or address:"
+            ),
+            button="Choose an Option",
+            sections=[
+                ListSection(
+                    title="Update Options",
+                    rows=[
+                        SectionRow(
+                            id="edit_name",
+                            title="Edit Name",
+                            description="Change your name.",
+                        ),
+                        SectionRow(
+                            id="edit_address",
+                            title="Edit Address",
+                            description="Update your delivery address.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="Ensure the correct details for successful transactions.",
+        )
+        return True, "Edit details prompt sent successfully."
+    except Exception as e:
+        return False, f"Failed to send edit details prompt: {str(e)}"
+
+
+def send_payment_method_prompt(
+    whatsapp, phone_number, username, ListSection, SectionRow
+):
+    try:
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="💳 Choose Payment Method",
+            body=(
+                f"Hi {username},\n\n"
+                "Please select a payment method for your transaction:\n\n"
+                "You can either pay with *Cash on Delivery* or use your *Rewards Balance*.\n\n"
+                "Choose an option below to proceed:"
+            ),
+            button="Select Payment Method",
+            sections=[
+                ListSection(
+                    title="Payment Options",
+                    rows=[
+                        SectionRow(
+                            id="cash_on_delivery",
+                            title="Cash on Delivery",
+                            description="Pay with cash when your order is delivered.",
+                        ),
+                        SectionRow(
+                            id="rewards_balance",
+                            title="Use Rewards Balance",
+                            description="Use your available rewards balance for this transaction.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="Select your preferred payment method to continue.",
+        )
+        return True, "Payment method prompt sent successfully."
+    except Exception as e:
+        return False, f"Failed to send payment method prompt: {str(e)}"
