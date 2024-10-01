@@ -313,6 +313,12 @@ def get_customer_by_phone(phone):
     return customer
 
 
+def get_customer_by_id(customer_id):
+    """Query a customer by ID."""
+    customer = Customer.query.get(customer_id)
+    return customer
+
+
 def get_all_orders():
     """Retrieve all orders, excluding those with status 'Delivered' or 'Cancelled', ordered by creation date in descending order."""
     CustomerAlias = aliased(Customer)

@@ -59,6 +59,7 @@ from dboperations import (
     get_last_pending_withdrawal,
     update_withdrawal_status_to_completed,
     update_latest_pending_order_total,
+    get_customer_by_id,
 )
 from models import db, Customer, init_db, Order, db_session, CustomerReward, Withdrawal
 from messages.app_logic_messages import (
@@ -351,6 +352,28 @@ def order_status_update(order_id):
     if new_status:
         order.status = new_status
         db.session.commit()
+        customer_id = order.customer_id
+        phone = get_customer_by_id(customer_id).phone
+        if order.status == "Packed":
+            message_sent, res = order_packed(
+                whatsapp, phone, order, ListSection, SectionRow
+            )
+        elif order.status == "Packaging received":
+            message_sent, res = packaging_received(
+                whatsapp, phone, order, ListSection, SectionRow
+            )
+        elif order.status == "Sent to Packaging":
+            message_sent, res = sent_to_packaging(
+                whatsapp, phone, order, ListSection, SectionRow
+            )
+        elif order.status == "Sent for delivery":
+            message_sent, res = order_on_way(
+                whatsapp, phone, order, ListSection, SectionRow
+            )
+        elif order.status == "Delivered":
+            message_sent, res = order_delivered(
+                whatsapp, phone, order, ListSection, SectionRow
+            )
         flash(f"Order {order_id} status updated to {new_status}", "success")
 
     return redirect(url_for("order_details", order_id=order_id))
