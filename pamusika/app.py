@@ -312,8 +312,21 @@ def initialize_withdrawal():
     customer_id = request.form["customer_id"]
     withdrawal_amount = request.form["withdrawal_amount"]
     intiating_withdrawal = initiate_withdrawal(withdrawal_amount, customer_id)
+    customer = get_customer_by_id(customer_id)
+    phone = customer.phone
+    fullname = customer.name
+    address = customer.address
     if intiating_withdrawal:
         flash(f"Withdrawal initiated for Customer {customer_id}.", "success")
+        confirm_withdrawal_message(
+            whatsapp,
+            phone,
+            fullname,
+            address,
+            withdrawal_amount,
+            ListSection,
+            SectionRow,
+        )
         return redirect(url_for("view_rewards"))  # Redirect to the withdrawal page
 
 
@@ -605,6 +618,8 @@ class GroupAPI(MethodView):
             elif user_choice == "edit_address":
                 request_address(whatsapp, phone)
                 update_customer_state(phone, "collecting_address")
+            elif user_choice == "edit_amount":
+                whatsapp.send_text(to=phone, body="Please Enter amount to withdraw")
             elif user_choice == "place_order":
                 result = send_catalog(
                     phone, catalog_id, whatsapp, CatalogSection, db_session

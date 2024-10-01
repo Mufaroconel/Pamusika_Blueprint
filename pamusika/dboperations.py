@@ -659,7 +659,7 @@ def initiate_withdrawal(amount, customer_id):
         new_withdrawal = Withdrawal(
             customer_id=customer_id,
             amount=amount,
-            status="Pending",  # Withdrawal is initiated with status Pending
+            status="Initiated",  # Withdrawal is initiated with status Pending
             initiated_at=datetime.now(),
             method="Withdrawal",  # Default method, can be updated based on context
         )
