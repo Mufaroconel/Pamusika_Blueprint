@@ -266,39 +266,19 @@ def view_rewards():
     )
 
 
-@app.route("/withdrawal_confirmation/<int:withdrawal_id>", methods=["POST"])
-def withdrawal_confirmation(withdrawal_id):
-    # Fetch the withdrawal by ID
-    withdrawal, error = get_withdrawal_by_id(withdrawal_id)
+@app.route("/withdrawal_confirmation/<int:customer_id>", methods=["POST"])
+def withdrawal_confirmation(customer_id):
+    # Call the function to update withdrawal status to "Completed" directly
+    success, message = update_withdrawal_status_to_completed(customer_id)
 
-    if error:
-        flash(error, "danger")
-        return redirect(url_for("view_rewards"))  # Replace with your route
+    # Handle the outcome of the function
+    if success:
+        flash("Withdrawal status updated to 'Initiated' successfully.", "success")
+    else:
+        flash(message or "Failed to update withdrawal status.", "danger")
 
-    if not withdrawal:
-        flash("Withdrawal not found.", "danger")
-        return redirect(url_for("view_rewards"))  # Replace with your route
-
-    amount = withdrawal.amount
-    customer_id = withdrawal.customer_id
-
-    # Update the withdrawal status to "Initiated"
-    success, message = update_withdrawal_status_to_completed(withdrawal_id)
-
-    if not success:
-        flash(message, "danger")
-        return redirect(url_for("view_rewards"))  # Replace with your route
-
-    remaining_reward, error = subtract_from_reward(customer_id, amount)
-    if error:
-        flash(error, "danger")
-        return redirect(url_for("view_rewards"))  # Replace with your route
-
-    flash(
-        f"Withdrawal has been initiated successfully! Remaining rewards: {remaining_reward}",
-        "success",
-    )
-    return redirect(url_for("view_rewards"))  # Replace with your route
+    # Redirect to the appropriate route
+    return redirect(url_for("view_rewards"))  # Adjust this route if needed
 
 
 # Route to update a specific customer's reward

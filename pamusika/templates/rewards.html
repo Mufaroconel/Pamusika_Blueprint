@@ -116,7 +116,7 @@
                         <td>{{ withdrawal.amount }}</td>
                         <td>{{ withdrawal.status }}</td>
                         <td>
-                            <form action="{{ url_for('withdrawal_confirmation', withdrawal_id=withdrawal.id) }}" method="POST" class="d-inline">
+                            <form action="{{ url_for('withdrawal_confirmation', customer_id=withdrawal.customer_id) }}" method="POST" class="d-inline">
                                 <button type="submit" class="btn btn-success">Confirm</button>
                             </form>
                         </td>

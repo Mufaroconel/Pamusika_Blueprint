@@ -220,35 +220,35 @@ def subtract_from_reward(customer_id, amount):
 
 def update_withdrawal_status_to_completed(customer_id):
     try:
-        # Find the latest pending withdrawal for the given customer
+        # Find the last pending withdrawal for the customer, sorted by the latest initiation date
         last_withdrawal = (
             Withdrawal.query.filter_by(customer_id=customer_id, status="Initiated")
             .order_by(Withdrawal.initiated_at.desc())
             .first()
         )
-
-        # Check if any pending withdrawal was found
         if not last_withdrawal:
-            print(f"No pending withdrawals found for customer ID {customer_id}.")
-            return False, "No pending withdrawals."
+            print("No initiated withdrawals found for this customer {customer_id}.")
+            return False, "No pending withdrawals found for this customer."
 
-        # Update the status to "Completed"
+        # Update the status to "Initiated" and set the initiated_at timestamp
         last_withdrawal.status = "Completed"
-        last_withdrawal.confirmed_at = datetime.now()  # Set the confirmation time
+        print("completed")
+        last_withdrawal.initiated_at = datetime.now()
 
-        # Commit the changes to the database
+        # Commit the update to the database
         db.session.commit()
 
-        print(
-            f"Withdrawal ID {last_withdrawal.id} marked as 'Completed' for customer ID {customer_id}."
-        )
-        return True, "Withdrawal status updated to 'Completed'."
+        print("Last pending withdrawal status updated to 'Completed' successfully.")
+        return True, "Withdrawal status updated successfully."
 
     except Exception as e:
-        # Roll back the session in case of an error
+        print(f"Error updating withdrawal status: {e}")
+        return False, "An error occurred while updating the withdrawal status."
+
+    except SQLAlchemyError as e:
+        # Roll back the session if there's an error
+        print(f"An error occurred: {e}")
         db.session.rollback()
-        print(f"An error occurred: {str(e)}")
-        return False, f"Error: {str(e)}"
 
 
 def get_withdrawal_by_id(withdrawal_id):
@@ -753,7 +753,7 @@ def update_latest_pending_order_total(customer_id, new_total):
         db.session.commit()
 
         return True, f"Order ID {order.id} updated with new total: ${new_total:.2f}."
-    
+
     except Exception as e:
         # Roll back in case of error
         db.session.rollback()

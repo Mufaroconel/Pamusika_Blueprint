@@ -450,8 +450,8 @@ def withdrawal_initiated(whatsapp, phone_number, ListSection, SectionRow):
                     title="Your Next Steps",
                     rows=[
                         SectionRow(
-                            id="view_profile",
-                            title="View Profile",
+                            id="user_profile",
+                            title="User Profile",
                             description="Manage your personal details.",
                         ),
                         SectionRow(
