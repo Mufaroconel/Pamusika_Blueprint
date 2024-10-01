@@ -684,7 +684,6 @@ class GroupAPI(MethodView):
                 rounded_balance = math.floor(balance * 10) / 10
                 customer_id = get_customer_by_phone(phone).id
                 total_amount = get_last_pending_order_total(customer_id)
-                add_to_reward(customer_id, balance)
                 new_total = total_amount - rounded_balance
                 update_latest_pending_order_total(customer_id, new_total)
                 subtract_from_reward(customer_id, rounded_balance)
