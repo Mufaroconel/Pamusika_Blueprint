@@ -431,6 +431,44 @@ def order_confirmed(whatsapp, phone_number, ListSection, SectionRow):
         return False, f"Failed to send order confirmation message: {str(e)}"
 
 
+def withdrawal_initiated(whatsapp, phone_number, ListSection, SectionRow):
+    try:
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="💵 Withdrawal Initiated!",
+            body=(
+                "Your withdrawal request has been successfully initiated. 🏦💰\n\n"
+                "Our team is processing your request, and your cash will be delivered to your doorstep soon. 🚚💵\n\n"
+                "You can manage your account or reach out to customer support for any assistance:\n\n"
+                "1. 🏠 *View Profile*: Manage your personal details.\n"
+                "2. 🛠️ *Customer Support*: Get help with any questions or concerns.\n\n"
+                "Thank you for banking with us!"
+            ),
+            button="Select an Option",
+            sections=[
+                ListSection(
+                    title="Your Next Steps",
+                    rows=[
+                        SectionRow(
+                            id="view_profile",
+                            title="View Profile",
+                            description="Manage your personal details.",
+                        ),
+                        SectionRow(
+                            id="customer_support",
+                            title="Customer Support",
+                            description="We’re here to assist with any questions.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="Your cash will be delivered shortly. 🏦💵",
+        )
+        return True, "Withdrawal initiation message sent successfully."
+    except Exception as e:
+        return False, f"Failed to send withdrawal initiation message: {str(e)}"
+
+
 def order_amount_restriction(
     whatsapp,
     phone_number,
@@ -1186,6 +1224,126 @@ def insufficient_balance_notification(
         return False, f"Failed to send insufficient balance message: {str(e)}"
 
 
+import math
+
+
+def insufficient_balance_for_order_notification(
+    whatsapp,
+    phone_number,
+    username,
+    reward_balance,
+    total_order_amount,
+    ListSection,
+    SectionRow,
+):
+    try:
+        # Calculate amounts
+        amount_with_rewards = min(reward_balance, total_order_amount)
+        amount_with_cash = total_order_amount - amount_with_rewards
+
+        # Round down to 1 decimal place for rewards
+        amount_with_rewards = math.floor(amount_with_rewards * 10) / 10
+        # Round up to 1 decimal place for cash
+        amount_with_cash = total_order_amount - amount_with_rewards
+
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="⚠️ Insufficient Balance for Payment",
+            body=(
+                f"Hi {username},\n\n"
+                "Unfortunately, your rewards balance is insufficient to fully pay for your order.\n"
+                f"Your current rewards balance is *${reward_balance:.2f}*.\n"
+                f"The total amount due for your order is *${total_order_amount:.2f}*.\n\n"
+                "Here's how you can pay:\n"
+                f"- Use rewards to pay *${amount_with_rewards:.1f}*.\n"
+                f"- Pay the remaining *${amount_with_cash:.1f}* in cash upon delivery.\n\n"
+                "Please choose one of the options below to proceed:"
+            ),
+            button="Select an Option",
+            sections=[
+                ListSection(
+                    title="Payment Options",
+                    rows=[
+                        SectionRow(
+                            id="pay_with_rewards_and_delivery",
+                            title="Pay with Rewards",
+                            description="Use rewards & cash on delivery.",
+                        ),
+                        SectionRow(
+                            id="pay_cash_on_delivery",
+                            title="Cash on Delivery",
+                            description="Full payment on delivery.",
+                        ),
+                        SectionRow(
+                            id="edit_order",
+                            title="Change Order",
+                            description="Modify your order.",
+                        ),
+                        SectionRow(
+                            id="cancel_order",
+                            title="Cancel Order",
+                            description="Abort the order.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="Thank you for shopping with us!",
+        )
+        return True, "Insufficient balance notification sent successfully."
+    except Exception as e:
+        return False, f"Failed to send insufficient balance notification: {str(e)}"
+
+
+def insufficient_reward_balance(
+    whatsapp,
+    phone_number,
+    username,
+    balance,
+    ListSection,
+    SectionRow,
+):
+    try:
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="⚠️ Insufficient Rewards Balance",
+            body=(
+                f"Hi {username},\n\n"
+                "Unfortunately, your rewards balance is insufficient to pay for your order.\n"
+                f"Your current rewards balance is *${balance:.2f}*.\n"
+                # f"The total amount due for your order is *${total_order_amount:.2f}*.\n\n"
+                # f"You will need to pay the remaining amount of *${amount_with_cash:.1f}* in cash upon delivery.\n\n"
+                "Please choose one of the options below to proceed:"
+            ),
+            button="Select an Option",
+            sections=[
+                ListSection(
+                    title="Payment Options",
+                    rows=[
+                        SectionRow(
+                            id="pay_with_cash",
+                            title="Cash on Delivery",
+                            description="Full payment on delivery.",
+                        ),
+                        SectionRow(
+                            id="edit_order",
+                            title="Change Order",
+                            description="Modify your order.",
+                        ),
+                        SectionRow(
+                            id="cancel_order",
+                            title="Cancel Order",
+                            description="Abort the order.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="Thank you for shopping with us!",
+        )
+        return True, "Insufficient balance notification sent successfully."
+    except Exception as e:
+        return False, f"Failed to send insufficient balance notification: {str(e)}"
+
+
 def minimum_withdrawal_warning(
     whatsapp, phone_number, username, ListSection, SectionRow
 ):
@@ -1276,57 +1434,54 @@ def exit_withdrawal_message(whatsapp, phone, username, ListSection, SectionRow):
         return False, f"Failed to send exit withdrawal message: {str(e)}"
 
 
-def confirm_uwithdrawal(
+def confirm_withdrawal_message(
     whatsapp,
     phone_number,
     username,
     address,
-    amount_to_withdraw,
+    amount,
     ListSection,
     SectionRow,
 ):
     try:
+        # Keep the structure similar to the working function
         whatsapp.send_interactive_list(
             to=phone_number,
-            header="💵 Confirm Your Withdrawal",
+            header="💵 Confirm Withdrawal",
             body=(
                 f"Hi {username},\n\n"
-                f"You have requested to withdraw *${amount_to_withdraw:.2f}*.\n\n"
-                "Please confirm that your delivery address is correct as cash will be delivered to your doorstep:\n"
-                f"*Delivery Address*: {address}\n\n"
-                "If everything looks good, please select an option below to proceed with the withdrawal:\n"
-                "1. ✅ *Confirm Withdrawal*: Confirm your withdrawal and cash delivery.\n"
-                "2. 📝 *Edit Address*: Update your address before proceeding.\n"
-                "3. 💵 *Edit Amount*: Change the amount you want to withdraw."
+                f"Withdraw *${amount}*?\n\n"
+                "Delivery address for cash:\n"
+                f"*{address}*\n\n"
             ),
-            button="Select an Option",
+            button="Choose an Option",
             sections=[
                 ListSection(
-                    title="Your Next Steps",
+                    title="Next Steps",
                     rows=[
                         SectionRow(
                             id="confirm_withdrawal",
-                            title="Confirm Withdrawal",
-                            description=f"Withdraw ${amount_to_withdraw:.2f} and deliver to your address.",
+                            title="Confirm",
+                            description="Confirm withdrawal.",
                         ),
                         SectionRow(
                             id="edit_address",
                             title="Edit Address",
-                            description="Update your address for cash delivery.",
+                            description="Change address.",
                         ),
                         SectionRow(
                             id="edit_amount",
-                            title="Edit Withdrawal Amount",
-                            description="Change the amount you want to withdraw.",
+                            title="Edit Amount",
+                            description="Change withdrawal amount.",
                         ),
                     ],
                 ),
             ],
-            footer="Ensure your address and withdrawal amount are correct.",
+            footer="Ensure address and amount are correct.",
         )
-        return True, "Interactive list sent successfully."
+        return True, "Confirmation message sent successfully."
     except Exception as e:
-        return False, f"Failed to send interactive list: {str(e)}"
+        return False, f"Failed to send confirmation message: {str(e)}"
 
 
 def rewards_balance(whatsapp, phone_number, username, balance, ListSection, SectionRow):

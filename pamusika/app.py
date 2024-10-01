@@ -11,6 +11,7 @@ from flask import (
 from flask_sqlalchemy import SQLAlchemy
 from flask.views import MethodView
 from wa_cloud_py import WhatsApp
+import math
 
 # from wa_cloud_py.messages.types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage # latest version 0.1.7
 from wa_cloud_py.message_types import (
@@ -53,6 +54,11 @@ from dboperations import (
     subtract_from_reward,
     confirm_withdrawal,
     get_withdrawal_by_id,
+    get_last_pending_order_total,
+    update_last_withdrawal_status_to_initiated,
+    get_last_pending_withdrawal,
+    update_withdrawal_status_to_completed,
+    update_latest_pending_order_total,
 )
 from models import db, Customer, init_db, Order, db_session, CustomerReward, Withdrawal
 from messages.app_logic_messages import (
@@ -84,9 +90,12 @@ from messages.app_logic_messages import (
     insufficient_balance_notification,
     minimum_withdrawal_warning,
     exit_withdrawal_message,
-    confirm_uwithdrawal,
+    confirm_withdrawal_message,
     rewards_balance,
     send_edit_user_details_prompt,
+    insufficient_balance_for_order_notification,
+    withdrawal_initiated,
+    insufficient_reward_balance,
 )
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 
@@ -259,11 +268,12 @@ def view_rewards():
 
 @app.route("/withdrawal_confirmation/<int:withdrawal_id>", methods=["POST"])
 def withdrawal_confirmation(withdrawal_id):
+    # Fetch the withdrawal by ID
     withdrawal, error = get_withdrawal_by_id(withdrawal_id)
 
     if error:
         flash(error, "danger")
-        return redirect(url_for("some_route"))  # Replace with your route
+        return redirect(url_for("view_rewards"))  # Replace with your route
 
     if not withdrawal:
         flash("Withdrawal not found.", "danger")
@@ -272,17 +282,22 @@ def withdrawal_confirmation(withdrawal_id):
     amount = withdrawal.amount
     customer_id = withdrawal.customer_id
 
+    # Update the withdrawal status to "Initiated"
+    success, message = update_withdrawal_status_to_completed(withdrawal_id)
+
+    if not success:
+        flash(message, "danger")
+        return redirect(url_for("view_rewards"))  # Replace with your route
+
     remaining_reward, error = subtract_from_reward(customer_id, amount)
     if error:
         flash(error, "danger")
         return redirect(url_for("view_rewards"))  # Replace with your route
 
-    error = confirm_withdrawal(withdrawal)
-    if error:
-        flash(error, "danger")
-        return redirect(url_for("view_rewards"))  # Replace with your route
-
-    flash(f"Withdrawal confirmed! Remaining rewards: {remaining_reward}", "success")
+    flash(
+        f"Withdrawal has been initiated successfully! Remaining rewards: {remaining_reward}",
+        "success",
+    )
     return redirect(url_for("view_rewards"))  # Replace with your route
 
 
@@ -488,9 +503,10 @@ class GroupAPI(MethodView):
                         amount = message.body
                         balance = get_total_reward_for_customer(phone)
                         customer = get_customer_by_phone(phone)
+                        address = customer.address
                         if customer:
                             customer_id = customer.id
-                            print(customer_id)
+                            print(customer_id, address)
                             if float(amount) < 1:
                                 minimum_withdrawal_warning(
                                     whatsapp,
@@ -502,11 +518,7 @@ class GroupAPI(MethodView):
                             else:
                                 if balance >= float(amount):
                                     initiate_withdrawal(amount, customer_id)
-                                    whatsapp.send_text(
-                                        to=phone,
-                                        body=f"Are you sure you want to withdraw ${amount}",
-                                    )
-                                    confirm_uwithdrawal(
+                                    confirm_withdrawal_message(
                                         whatsapp,
                                         phone,
                                         username,
@@ -515,6 +527,7 @@ class GroupAPI(MethodView):
                                         ListSection,
                                         SectionRow,
                                     )
+                                    print("withdrawal message sent")
                                 else:
                                     reward_balance = get_total_reward_for_customer(
                                         phone
@@ -597,7 +610,27 @@ class GroupAPI(MethodView):
                     message_sent, res = result
                 else:
                     message_sent, res = None
-            if user_choice == "pay_with_cash":
+            elif user_choice == "confirm_withdrawal":
+                balance = get_total_reward_for_customer(phone)
+                customer_id = get_customer_by_phone(phone).id
+                withdrawal_amount = get_last_pending_withdrawal(customer_id).amount
+                print(balance)
+                print(withdrawal_amount)
+                if balance >= withdrawal_amount:
+                    subtract_from_reward(customer_id, withdrawal_amount)
+                    update_last_withdrawal_status_to_initiated(customer_id)
+                    withdrawal_initiated(whatsapp, phone, ListSection, SectionRow)
+                else:
+                    insufficient_balance_for_order_notification(
+                        whatsapp,
+                        phone,
+                        username,
+                        balance,
+                        withdrawal_amount,
+                        ListSection,
+                        SectionRow,
+                    )
+            elif user_choice == "pay_with_cash":
                 customer_reward = get_reward_amount_for_last_order(phone)
                 update_last_order_status_to_sent(phone)
                 print(customer_reward)
@@ -617,8 +650,50 @@ class GroupAPI(MethodView):
                 order_confirmed(whatsapp, phone, ListSection, SectionRow)
             elif user_choice == "pay_with_rewards":
                 balance = get_total_reward_for_customer(phone)
+                customer_id = get_customer_by_phone(phone).id
+                total_amount = get_last_pending_order_total(customer_id)
                 print(balance)
-                pass
+                print(total_amount)
+                if balance < 1:
+                    insufficient_reward_balance(
+                        whatsapp,
+                        phone,
+                        username,
+                        balance,
+                        ListSection,
+                        SectionRow,
+                    )
+                elif balance >= total_amount:
+                    subtract_from_reward(customer_id, total_amount)
+                    new_customer_reward = get_reward_amount_for_last_order(phone)
+                    add_to_reward(customer_id, new_customer_reward)
+                    update_last_order_status_to_sent(phone)
+                    order_confirmed(whatsapp, phone, ListSection, SectionRow)
+                else:
+                    insufficient_balance_for_order_notification(
+                        whatsapp,
+                        phone,
+                        username,
+                        balance,
+                        total_amount,
+                        ListSection,
+                        SectionRow,
+                    )
+            elif user_choice == "pay_with_rewards_and_delivery":
+                balance = get_total_reward_for_customer(phone)
+                rounded_balance = math.floor(balance * 10) / 10
+                customer_id = get_customer_by_phone(phone).id
+                total_amount = get_last_pending_order_total(customer_id)
+                add_to_reward(customer_id, balance)
+                new_total = total_amount - rounded_balance
+                update_latest_pending_order_total(customer_id, new_total)
+                subtract_from_reward(customer_id, rounded_balance)
+                new_customer_reward = get_reward_amount_for_last_order(phone)
+                add_to_reward(customer_id, new_customer_reward)
+                update_last_order_status_to_sent(phone)
+                order_confirmed(whatsapp, phone, ListSection, SectionRow)
+                print(new_customer_reward)
+                print(rounded_balance, total_amount)
             elif user_choice == "cancel_order":
                 # Update the order status to cancelled
                 cancel_last_order_by_phone(phone)

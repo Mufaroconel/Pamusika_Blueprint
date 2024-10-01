@@ -6,7 +6,7 @@ from models import Customer, Order, order_products, Product, CustomerReward, Wit
 # from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import aliased
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import delete
+from sqlalchemy import delete, desc
 import uuid
 from Pamusika_Investment_Rewards.reward_calculator import calculate_reward
 
@@ -116,24 +116,6 @@ def delete_all_customers():
             print(f"An error occurred: {e}")
 
 
-# def add_customer(
-#     phone, username, address, surname, name, latitude=None, longitude=None
-# ):
-#     """Add a new customer to the database."""
-#     new_customer = Customer(
-#         phone=phone,
-#         username=username,
-#         address=address,
-#         latitude=latitude,
-#         longitude=longitude,
-#         surname=surname,
-#         name=name,
-#     )
-#     db.session.add(new_customer)
-#     db.session.commit()
-#     return new_customer
-
-
 def add_customer(
     phone, username, address, surname, name, latitude=None, longitude=None
 ):
@@ -234,6 +216,39 @@ def subtract_from_reward(customer_id, amount):
     except SQLAlchemyError as e:
         db.session.rollback()
         return None, f"An error occurred while subtracting rewards: {str(e)}"
+
+
+def update_withdrawal_status_to_completed(customer_id):
+    try:
+        # Find the latest pending withdrawal for the given customer
+        last_withdrawal = (
+            Withdrawal.query.filter_by(customer_id=customer_id, status="Initiated")
+            .order_by(Withdrawal.initiated_at.desc())
+            .first()
+        )
+
+        # Check if any pending withdrawal was found
+        if not last_withdrawal:
+            print(f"No pending withdrawals found for customer ID {customer_id}.")
+            return False, "No pending withdrawals."
+
+        # Update the status to "Completed"
+        last_withdrawal.status = "Completed"
+        last_withdrawal.confirmed_at = datetime.now()  # Set the confirmation time
+
+        # Commit the changes to the database
+        db.session.commit()
+
+        print(
+            f"Withdrawal ID {last_withdrawal.id} marked as 'Completed' for customer ID {customer_id}."
+        )
+        return True, "Withdrawal status updated to 'Completed'."
+
+    except Exception as e:
+        # Roll back the session in case of an error
+        db.session.rollback()
+        print(f"An error occurred: {str(e)}")
+        return False, f"Error: {str(e)}"
 
 
 def get_withdrawal_by_id(withdrawal_id):
@@ -343,6 +358,47 @@ def update_order_status(order_id, new_status):
     db.session.commit()
 
     return order
+
+
+def get_last_pending_order_total(customer_id):
+    """
+    Retrieve the total amount for the last order with status 'Pending'
+    for a specific customer based on their customer_id.
+    """
+
+    # Query for the last pending order for the specific customer
+    last_pending_order = (
+        Order.query.filter_by(status="Pending", customer_id=customer_id)
+        .order_by(desc(Order.order_date))
+        .first()
+    )
+
+    # Check if any pending order was found for the customer
+    if not last_pending_order:
+        raise ValueError(f"No pending orders found for customer ID {customer_id}.")
+
+    # Return the total amount of the last pending order
+    return last_pending_order.total_amount
+
+
+def get_last_pending_withdrawal(customer_id):
+    """
+    Retrieve the last pending withdrawal for a specific customer based on their customer_id.
+    """
+
+    # Query for the last pending withdrawal for the specific customer
+    last_pending_withdrawal = (
+        Withdrawal.query.filter_by(status="Pending", customer_id=customer_id)
+        .order_by(desc(Withdrawal.initiated_at))
+        .first()
+    )
+
+    # Check if any pending withdrawal was found for the customer
+    if not last_pending_withdrawal:
+        raise ValueError(f"No pending withdrawals found for customer ID {customer_id}.")
+
+    # Return the last pending withdrawal object
+    return last_pending_withdrawal
 
 
 def get_filtered_orders(
@@ -619,7 +675,7 @@ def initiate_withdrawal(amount, customer_id):
 def get_pending_withdrawals():
     try:
         # Query to fetch all withdrawals with status "Pending"
-        pending_withdrawals = Withdrawal.query.filter_by(status="Pending").all()
+        pending_withdrawals = Withdrawal.query.filter_by(status="Initiated").all()
 
         if not pending_withdrawals:
             print("No pending withdrawals found.")
@@ -670,6 +726,60 @@ def update_last_order_status_to_sent(phone):
         # Roll back the session if there's an error
         print(f"An error occurred: {e}")
         db.session.rollback()
+
+    except SQLAlchemyError as e:
+        # Roll back the session if there's an error
+        print(f"An error occurred: {e}")
+        db.session.rollback()
+
+
+def update_latest_pending_order_total(customer_id, new_total):
+    try:
+        # Find the latest order with status 'Pending' for the customer
+        order = (
+            Order.query.filter_by(customer_id=customer_id, status="Pending")
+            .order_by(Order.order_date.desc())
+            .first()
+        )
+
+        # If no pending order is found, return an error
+        if not order:
+            return False, f"No pending orders found for customer ID {customer_id}."
+
+        # Update the total amount
+        order.total_amount = new_total
+
+        # Commit the changes to the database
+        db.session.commit()
+
+        return True, f"Order ID {order.id} updated with new total: ${new_total:.2f}."
+    
+    except Exception as e:
+        # Roll back in case of error
+        db.session.rollback()
+        return False, f"Failed to update order total: {str(e)}"
+
+
+def update_last_withdrawal_status_to_initiated(customer_id):
+    try:
+        # Find the last pending withdrawal for the customer, sorted by the latest initiation date
+        last_withdrawal = (
+            Withdrawal.query.filter_by(customer_id=customer_id, status="Pending")
+            .order_by(Withdrawal.initiated_at.desc())
+            .first()
+        )
+        if not last_withdrawal:
+            print("No pending withdrawals found for this customer.")
+            return
+
+        # Update the status to "Initiated" and set the initiated_at timestamp
+        last_withdrawal.status = "Initiated"
+        last_withdrawal.initiated_at = datetime.now()
+
+        # Commit the update to the database
+        db.session.commit()
+
+        print("Last pending withdrawal status updated to 'Initiated' successfully.")
 
     except SQLAlchemyError as e:
         # Roll back the session if there's an error
