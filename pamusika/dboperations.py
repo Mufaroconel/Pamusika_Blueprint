@@ -618,6 +618,24 @@ def get_reward_amount_for_last_order(phone):
         return None  # Return None on error
 
 
+def get_reward_amount_for_order(order_id):
+    try:
+        # Find the order by order_id
+        order = Order.query.filter_by(id=order_id).first()
+        if not order:
+            print("Order not found.")
+            return None  # Return None if the order is not found
+
+        # Return the reward amount for the specified order
+        return order.reward_amount
+
+    except SQLAlchemyError as e:
+        # Handle the error and rollback if necessary
+        print(f"An error occurred: {e}")
+        db.session.rollback()
+        return None  # Return None on error
+
+
 def get_total_reward_for_customer(phone):
     try:
         # Find the customer by phone number

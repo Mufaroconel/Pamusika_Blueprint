@@ -894,7 +894,9 @@ def order_on_way(whatsapp, phone_number, order, ListSection, SectionRow):
         return False, f"Failed to send order on the way message: {str(e)}"
 
 
-def order_delivered(whatsapp, phone_number, order, ListSection, SectionRow):
+def order_delivered(
+    whatsapp, phone_number, order, new_reward_balance, ListSection, SectionRow
+):
     try:
         # Decode fruits and vegetables from JSON
         fruits = json.loads(order.fruits_items)
@@ -914,7 +916,8 @@ def order_delivered(whatsapp, phone_number, order, ListSection, SectionRow):
             f"🧾 *Total Amount*: ${order.total_amount}\n"
             f"📅 *Order Date*: {order.order_date}\n"
             f"🍎 *Fruits*: {fruits}\n"
-            f"🥦 *Vegetables*: {vegetables}",
+            f"🥦 *Vegetables*: {vegetables}\n\n"
+            f" Your new reward balance is: *${new_reward_balance:.2f}*",
             button="Select an Option",
             sections=[
                 ListSection(

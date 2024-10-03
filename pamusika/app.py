@@ -60,6 +60,7 @@ from dboperations import (
     update_withdrawal_status_to_completed,
     update_latest_pending_order_total,
     get_customer_by_id,
+    get_reward_amount_for_order,
 )
 from models import db, Customer, init_db, Order, db_session, CustomerReward, Withdrawal
 from messages.app_logic_messages import (
@@ -363,30 +364,37 @@ def order_status_update(order_id):
     # Update the order status from the form submission
     new_status = request.form.get("status")
     if new_status:
-        order.status = new_status
-        db.session.commit()
-        customer_id = order.customer_id
-        phone = get_customer_by_id(customer_id).phone
-        if order.status == "Packed":
-            message_sent, res = order_packed(
-                whatsapp, phone, order, ListSection, SectionRow
-            )
-        elif order.status == "Packaging received":
-            message_sent, res = packaging_received(
-                whatsapp, phone, order, ListSection, SectionRow
-            )
-        elif order.status == "Sent to Packaging":
-            message_sent, res = sent_to_packaging(
-                whatsapp, phone, order, ListSection, SectionRow
-            )
-        elif order.status == "Sent for delivery":
-            message_sent, res = order_on_way(
-                whatsapp, phone, order, ListSection, SectionRow
-            )
-        elif order.status == "Delivered":
-            message_sent, res = order_delivered(
-                whatsapp, phone, order, ListSection, SectionRow
-            )
+        if order.status == "Delivered":
+            pass
+        else:
+            order.status = new_status
+            db.session.commit()
+            customer_id = order.customer_id
+            phone = get_customer_by_id(customer_id).phone
+            if order.status == "Packed":
+                message_sent, res = order_packed(
+                    whatsapp, phone, order, ListSection, SectionRow
+                )
+            elif order.status == "Packaging received":
+                message_sent, res = packaging_received(
+                    whatsapp, phone, order, ListSection, SectionRow
+                )
+            elif order.status == "Sent to Packaging":
+                message_sent, res = sent_to_packaging(
+                    whatsapp, phone, order, ListSection, SectionRow
+                )
+            elif order.status == "Sent for delivery":
+                message_sent, res = order_on_way(
+                    whatsapp, phone, order, ListSection, SectionRow
+                )
+            elif order.status == "Delivered":
+                customer_order_reward = get_reward_amount_for_order(order_id)
+                add_to_reward(customer_id, customer_order_reward)
+                new_reward_balance = get_total_reward_for_customer(phone)
+                message_sent, res = order_delivered(
+                    whatsapp, phone, order, new_reward_balance, ListSection, SectionRow
+                )
+
         flash(f"Order {order_id} status updated to {new_status}", "success")
 
     return redirect(url_for("order_details", order_id=order_id))
@@ -661,7 +669,7 @@ class GroupAPI(MethodView):
                     if customer_reward:
                         print(customer_reward)
                         total_reward = customer_reward
-                        add_to_reward(customer_id, total_reward)
+                        # add_to_reward(customer_id, total_reward)
                         print("updated succesfully")
                     else:
                         print("reward not found")
@@ -691,7 +699,7 @@ class GroupAPI(MethodView):
                 elif balance >= total_amount:
                     subtract_from_reward(customer_id, total_amount)
                     new_customer_reward = get_reward_amount_for_last_order(phone)
-                    add_to_reward(customer_id, new_customer_reward)
+                    # add_to_reward(customer_id, new_customer_reward)
                     order_id = update_last_order_status_to_sent_and_return_id(phone)
                     if order_id:
                         order_confirmed(whatsapp, phone, ListSection, SectionRow)
@@ -717,8 +725,7 @@ class GroupAPI(MethodView):
                 new_total = total_amount - rounded_balance
                 update_latest_pending_order_total(customer_id, new_total)
                 subtract_from_reward(customer_id, rounded_balance)
-                new_customer_reward = get_reward_amount_for_last_order(phone)
-                add_to_reward(customer_id, new_customer_reward)
+
                 order_id = update_last_order_status_to_sent_and_return_id(phone)
                 if order_id:
                     order_confirmed(whatsapp, phone, ListSection, SectionRow)
