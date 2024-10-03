@@ -695,13 +695,13 @@ def get_pending_withdrawals():
         return []  # Return an empty list on error
 
 
-def update_last_order_status_to_sent(phone):
+def update_last_order_status_to_sent_and_return_id(phone):
     try:
         # Find the customer by phone number
         customer = Customer.query.filter_by(phone=phone).first()
         if not customer:
             print("Customer not found.")
-            return
+            return None
 
         # Get the customer ID
         customer_id = customer.id
@@ -714,7 +714,7 @@ def update_last_order_status_to_sent(phone):
         )
         if not last_order:
             print("No orders found for this customer.")
-            return
+            return None
 
         # Check if the order status is "Pending"
         if last_order.status == "Pending":
@@ -725,18 +725,17 @@ def update_last_order_status_to_sent(phone):
             db.session.commit()
 
             print("Last order status updated to 'Sent to Packaging' successfully.")
+            # Return the order ID of the updated order
+            return last_order.id
         else:
             print("The last order status is not 'Pending'. No update performed.")
+            return None
 
     except SQLAlchemyError as e:
         # Roll back the session if there's an error
         print(f"An error occurred: {e}")
         db.session.rollback()
-
-    except SQLAlchemyError as e:
-        # Roll back the session if there's an error
-        print(f"An error occurred: {e}")
-        db.session.rollback()
+        return None
 
 
 def update_latest_pending_order_total(customer_id, new_total):

@@ -39,7 +39,7 @@ from dboperations import (
     get_product_name_and_category,
     cancel_last_order_by_phone,
     get_active_orders_by_phone,
-    update_last_order_status_to_sent,
+    update_last_order_status_to_sent_and_return_id,
     get_all_products,
     add_new_product,
     update_product,
@@ -650,22 +650,29 @@ class GroupAPI(MethodView):
                     )
             elif user_choice == "pay_with_cash":
                 customer_reward = get_reward_amount_for_last_order(phone)
-                update_last_order_status_to_sent(phone)
-                print(customer_reward)
-                customer = get_customer_by_phone(phone)
-                if customer:
-                    customer_id = customer.id
-                else:
-                    print("customer not found")
-                if customer_reward:
+                order_id = update_last_order_status_to_sent_and_return_id(phone)
+                if order_id:
                     print(customer_reward)
-                    total_reward = customer_reward
-                    add_to_reward(customer_id, total_reward)
-                    print("updated succesfully")
-                else:
-                    print("reward not found")
+                    customer = get_customer_by_phone(phone)
+                    if customer:
+                        customer_id = customer.id
+                    else:
+                        print("customer not found")
+                    if customer_reward:
+                        print(customer_reward)
+                        total_reward = customer_reward
+                        add_to_reward(customer_id, total_reward)
+                        print("updated succesfully")
+                    else:
+                        print("reward not found")
 
-                order_confirmed(whatsapp, phone, ListSection, SectionRow)
+                    order_confirmed(whatsapp, phone, ListSection, SectionRow)
+                    whatsapp.send_text(
+                        to="263711475883",
+                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://mjh2qrwn.uks1.devtunnels.ms:5000/order/{order_id}",
+                    )
+                else:
+                    pass
             elif user_choice == "pay_with_rewards":
                 balance = get_total_reward_for_customer(phone)
                 customer_id = get_customer_by_phone(phone).id
@@ -685,8 +692,13 @@ class GroupAPI(MethodView):
                     subtract_from_reward(customer_id, total_amount)
                     new_customer_reward = get_reward_amount_for_last_order(phone)
                     add_to_reward(customer_id, new_customer_reward)
-                    update_last_order_status_to_sent(phone)
-                    order_confirmed(whatsapp, phone, ListSection, SectionRow)
+                    order_id = update_last_order_status_to_sent_and_return_id(phone)
+                    if order_id:
+                        order_confirmed(whatsapp, phone, ListSection, SectionRow)
+                        whatsapp.send_text(
+                            to="263711475883",
+                            body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://mjh2qrwn.uks1.devtunnels.ms:5000/order/{order_id}",
+                        )
                 else:
                     insufficient_balance_for_order_notification(
                         whatsapp,
@@ -707,10 +719,17 @@ class GroupAPI(MethodView):
                 subtract_from_reward(customer_id, rounded_balance)
                 new_customer_reward = get_reward_amount_for_last_order(phone)
                 add_to_reward(customer_id, new_customer_reward)
-                update_last_order_status_to_sent(phone)
-                order_confirmed(whatsapp, phone, ListSection, SectionRow)
-                print(new_customer_reward)
-                print(rounded_balance, total_amount)
+                order_id = update_last_order_status_to_sent_and_return_id(phone)
+                if order_id:
+                    order_confirmed(whatsapp, phone, ListSection, SectionRow)
+                    whatsapp.send_text(
+                        to="263711475883",
+                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://mjh2qrwn.uks1.devtunnels.ms:5000/order/{order_id}",
+                    )
+                    print(new_customer_reward)
+                    print(rounded_balance, total_amount)
+                else:
+                    pass
             elif user_choice == "cancel_order":
                 # Update the order status to cancelled
                 cancel_last_order_by_phone(phone)
