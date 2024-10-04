@@ -29,33 +29,18 @@
                     <p><strong>Order Date:</strong> {{ order.order_date }}</p>
                     <p><strong>Total Amount:</strong> ${{ order.total_amount }}</p>
 
-                    <!-- Fruits and Vegetables -->
+                    <!-- Products Ordered -->
                     <h5 class="card-title mt-4">Items Ordered</h5>
                     <ul class="list-group">
-                        <li class="list-group-item">
-                            <strong>Fruits:</strong>
-                            {% if order.get_fruits_items() %}
-                                <ul>
-                                {% for item in order.get_fruits_items() %}
-                                  <li>{{ item['product'] }}: {{ item['quantity'] }} at ${{ item['price'] }} each</li>
-                                {% endfor %}
-                              </ul>
-                            {% else %}
-                                No fruits ordered.
-                            {% endif %}
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Vegetables:</strong>
-                            {% if order.get_vegetables_items() %}
-                                <ul>
-                                {% for item in order.get_vegetables_items() %}
-                                  <li>{{ item['product'] }}: {{ item['quantity'] }} at ${{ item['price'] }} each</li>
-                                {% endfor %}
-                              </ul>
-                            {% else %}
-                                No vegetables ordered.
-                            {% endif %}
-                        </li>
+                        {% if order_products %}
+                            {% for item in order_products %}
+                                <li class="list-group-item">
+                                    {{ item['name'] }}: {{ item['quantity'] }} at ${{ item['price'] }} each
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item">No products ordered.</li>
+                        {% endif %}
                     </ul>
 
                     <!-- Order Actions -->
@@ -67,6 +52,7 @@
                                 <option value="Packed" {% if order.status == "Packed" %}selected{% endif %}>Packed</option>
                                 <option value="Sent for delivery" {% if order.status == "Sent for delivery" %}selected{% endif %}>Sent for delivery</option>
                                 <option value="Delivered" {% if order.status == "Delivered" %}selected{% endif %}>Delivered</option>
+                                <option value="Cancelled" {% if order.status == "Cancelled" %}selected{% endif %}>Cancelled</option>
                             </select>
                             <button type="submit" class="btn btn-primary btn-sm mt-2">Update Status</button>
                         </form>                        

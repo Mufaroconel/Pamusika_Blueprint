@@ -103,6 +103,23 @@ def get_available_products_by_category(db_session):
         raise Exception(f"Error fetching products: {str(e)}")
 
 
+# db_operations.py
+
+
+def get_product_details(meta_id):
+    """Fetch product name and price based on meta_id."""
+    product = Product.query.filter_by(
+        meta_id=meta_id
+    ).first()  # Use filter_by to find by meta_id
+    if product:
+        return {
+            "name": product.name,
+            "price": product.selling_price,  # Assuming this is the correct field for selling price
+            "reward_amount": product.reward_amount,
+        }
+    return None  # Return None if the product is not found
+
+
 def delete_all_customers():
     with db.session.begin():  # Begin a new database session
         try:
@@ -452,15 +469,68 @@ def user_exists(phone):
     return user is not None
 
 
+# def add_order(
+#     db,
+#     customer_id,
+#     total_amount,
+#     reward_amount,
+#     delivery_address,
+#     fruits_items,
+#     vegetables_items,
+#     product_quantities,
+# ):
+#     """
+#     Adds a new order to the database with associated products.
+
+#     Args:
+#         db: SQLAlchemy database instance.
+#         customer_id (int): The ID of the customer placing the order.
+#         total_amount (float): The total amount of the order.
+#         delivery_address (str): The address for order delivery.
+#         fruits_items (list): List of fruits items to be included in the order.
+#         vegetables_items (list): List of vegetables items to be included in the order.
+#         product_quantities (list of tuples): Each tuple contains (product_id, quantity).
+
+#     Returns:
+#         Order: The created Order object.
+#     """
+#     # Create a new Order instance
+#     new_order = Order(
+#         customer_id=customer_id,
+#         total_amount=total_amount,
+#         delivery_address=delivery_address,
+#         reward_amount=reward_amount,
+#     )
+
+#     # Set the fruits and vegetables items
+#     new_order.set_fruits_items(fruits_items)
+#     new_order.set_vegetables_items(vegetables_items)
+
+#     # Add the order to the session
+#     db.session.add(new_order)
+#     db.session.commit()  # Commit to get the order ID
+
+#     # Associate products with the order
+#     for product_id, quantity in product_quantities:
+#         db.session.execute(
+#             order_products.insert().values(
+#                 order_id=new_order.id, product_id=product_id, quantity=quantity
+#             )
+#         )
+
+#     # Commit the changes to the database
+#     db.session.commit()
+
+#     return new_order
+
+
 def add_order(
     db,
     customer_id,
     total_amount,
     reward_amount,
     delivery_address,
-    fruits_items,
-    vegetables_items,
-    product_quantities,
+    product_quantities,  # Removed fruits_items and vegetables_items
 ):
     """
     Adds a new order to the database with associated products.
@@ -470,8 +540,6 @@ def add_order(
         customer_id (int): The ID of the customer placing the order.
         total_amount (float): The total amount of the order.
         delivery_address (str): The address for order delivery.
-        fruits_items (list): List of fruits items to be included in the order.
-        vegetables_items (list): List of vegetables items to be included in the order.
         product_quantities (list of tuples): Each tuple contains (product_id, quantity).
 
     Returns:
@@ -485,35 +553,110 @@ def add_order(
         reward_amount=reward_amount,
     )
 
-    # Set the fruits and vegetables items
-    new_order.set_fruits_items(fruits_items)
-    new_order.set_vegetables_items(vegetables_items)
-
     # Add the order to the session
     db.session.add(new_order)
     db.session.commit()  # Commit to get the order ID
 
     # Associate products with the order
-    for product_id, quantity in product_quantities:
-        db.session.execute(
-            order_products.insert().values(
-                order_id=new_order.id, product_id=product_id, quantity=quantity
+    for (
+        meta_id,
+        quantity,
+    ) in product_quantities:  # Assuming product_quantities now contains meta_ids
+        # Ensure that the product exists in the database before adding
+        product = Product.query.filter_by(meta_id=meta_id).first()  # Query by meta_id
+        if product:
+            # Add the product association with its quantity
+            db.session.execute(
+                order_products.insert().values(
+                    order_id=new_order.id,
+                    product_id=product.id,
+                    quantity=quantity,  # Use product.id for association
+                )
             )
-        )
-
+        else:
+            print(f"Product with meta ID {meta_id} does not exist.")
     # Commit the changes to the database
     db.session.commit()
 
     return new_order
 
 
-def query_orders(order_id=None, customer_id=None, status=None):
+def get_order_products(order_id):
+    """
+    Query the order_products table to retrieve products associated with a specific order.
+
+    Args:
+        order_id (int): The ID of the order for which to retrieve products.
+
+    Returns:
+        list: A list of dictionaries containing product details and quantities.
+    """
+    # Query the order_products association table
+    results = db.session.execute(
+        db.select(order_products).where(order_products.c.order_id == order_id)
+    ).fetchall()
+
+    # Prepare a list to hold product details
+    order_products_details = []
+
+    for result in results:
+        product_id = result.product_id
+        quantity = result.quantity
+
+        # Fetch product details using the product_id
+        product = Product.query.filter_by(
+            id=product_id
+        ).first()  # Assuming 'id' is the primary key
+
+        if product:
+            order_products_details.append(
+                {
+                    "product_id": product.id,
+                    "name": product.name,
+                    "price": product.selling_price,  # Assuming this is the correct field for selling price
+                    "quantity": quantity,
+                    "reward_amount": product.reward_amount,
+                }
+            )
+        else:
+            print(f"Product with ID {product_id} not found.")
+
+    return order_products_details
+
+
+# def query_orders(order_id=None, customer_id=None, status=None):
+#     """
+#     Query orders from the database based on the provided filters.
+
+#     :param order_id: The ID of the order to retrieve (optional).
+#     :param customer_id: The ID of the customer whose orders to retrieve (optional).
+#     :param status: The status of the orders to retrieve (optional).
+#     :return: A list of Order objects matching the query.
+#     """
+#     query = Order.query
+
+#     if order_id:
+#         query = query.filter_by(id=order_id)
+#     if customer_id:
+#         query = query.filter_by(customer_id=customer_id)
+#     if status:
+#         query = query.filter_by(status=status)
+
+#     return query.all()
+
+
+##
+def query_orders(
+    order_id=None, customer_id=None, status=None, start_date=None, end_date=None
+):
     """
     Query orders from the database based on the provided filters.
 
     :param order_id: The ID of the order to retrieve (optional).
     :param customer_id: The ID of the customer whose orders to retrieve (optional).
     :param status: The status of the orders to retrieve (optional).
+    :param start_date: The start date for filtering orders (optional).
+    :param end_date: The end date for filtering orders (optional).
     :return: A list of Order objects matching the query.
     """
     query = Order.query
@@ -525,7 +668,16 @@ def query_orders(order_id=None, customer_id=None, status=None):
     if status:
         query = query.filter_by(status=status)
 
+    # Filter by order date range if provided
+    if start_date:
+        query = query.filter(Order.order_date >= start_date)
+    if end_date:
+        query = query.filter(Order.order_date <= end_date)
+
     return query.all()
+
+
+##
 
 
 def add_product(

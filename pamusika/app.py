@@ -61,6 +61,7 @@ from dboperations import (
     update_latest_pending_order_total,
     get_customer_by_id,
     get_reward_amount_for_order,
+    get_order_products,
 )
 from models import db, Customer, init_db, Order, db_session, CustomerReward, Withdrawal
 from messages.app_logic_messages import (
@@ -115,7 +116,7 @@ phone_id = os.getenv("PHONE_ID")
 verify_token = os.getenv("VERIFY_TOKEN")
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///musikadb.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///musikatestdb.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = "secretkey"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=12)
@@ -349,10 +350,18 @@ def order_details(order_id):
     # Fetch the order details by ID
     order = Order.query.get_or_404(order_id)
 
-    # You might also want to fetch customer details, depending on your use case
+    # Fetch customer details
     customer = Customer.query.get(order.customer_id)
 
-    return render_template("order_details.html", order=order, customer=customer)
+    # Fetch associated products for the order
+    order_products = get_order_products(order.id)  # Use the new function
+
+    return render_template(
+        "order_details.html",
+        order=order,
+        customer=customer,
+        order_products=order_products,
+    )
 
 
 @app.route("/order/<int:order_id>/update-status", methods=["POST"])
@@ -393,6 +402,10 @@ def order_status_update(order_id):
                 new_reward_balance = get_total_reward_for_customer(phone)
                 message_sent, res = order_delivered(
                     whatsapp, phone, order, new_reward_balance, ListSection, SectionRow
+                )
+            elif order.status == "Cancelled":
+                message_sent, res = order_cancelled(
+                    whatsapp, phone, ListSection, SectionRow
                 )
 
         flash(f"Order {order_id} status updated to {new_status}", "success")
@@ -677,7 +690,7 @@ class GroupAPI(MethodView):
                     order_confirmed(whatsapp, phone, ListSection, SectionRow)
                     whatsapp.send_text(
                         to="263711475883",
-                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://mjh2qrwn.uks1.devtunnels.ms:5000/order/{order_id}",
+                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://0gvvb2gw-5000.uks1.devtunnels.ms/order/{order_id}",
                     )
                 else:
                     pass
@@ -705,7 +718,7 @@ class GroupAPI(MethodView):
                         order_confirmed(whatsapp, phone, ListSection, SectionRow)
                         whatsapp.send_text(
                             to="263711475883",
-                            body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://mjh2qrwn.uks1.devtunnels.ms:5000/order/{order_id}",
+                            body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://0gvvb2gw-5000.uks1.devtunnels.ms/order/{order_id}",
                         )
                 else:
                     insufficient_balance_for_order_notification(
@@ -731,7 +744,7 @@ class GroupAPI(MethodView):
                     order_confirmed(whatsapp, phone, ListSection, SectionRow)
                     whatsapp.send_text(
                         to="263711475883",
-                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://mjh2qrwn.uks1.devtunnels.ms:5000/order/{order_id}",
+                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://0gvvb2gw-5000.uks1.devtunnels.ms/order/{order_id}",
                     )
                     print(new_customer_reward)
                     print(rounded_balance, total_amount)
@@ -828,110 +841,90 @@ class GroupAPI(MethodView):
                 rewards_balance(
                     whatsapp, phone, username, balance, ListSection, SectionRow
                 )
+
         elif isinstance(message, OrderMessage):
             products = message.products
-            # from db get cusstomer id, delivery address
+            # Get customer ID and delivery address from the database
             with app.app_context():
                 customer = get_customer_by_phone(phone)
+                if customer is None:
+                    print("Customer not found.")
+                    return  # Handle customer not found scenario appropriately
                 customer_id = customer.id
                 delivery_address = customer.address
-            # from order message get total_amount, fruit_items, total reward
-            #   '' vegetable items, product items
+
+            # Initialize totals and product quantities
             total_amount = 0.0
             total_reward = 0.0
-            fruits_items = []
-            vegetables_items = []
             product_quantities = []
 
             for product in products:
                 # Calculate the total for this product
                 item_total = product.price * product.quantity
                 total_amount += item_total
+
                 category_id = product.id
                 with app.app_context():
                     name_category = get_product_name_and_category(category_id)
-                reward_amount = name_category.reward_amount
-                item_reward_total = reward_amount * product.quantity
-                total_reward += item_reward_total
+
                 if name_category is not None:
-                    if name_category.product_category == "Fruit":
-                        fruits_items.append(
-                            {
-                                "product": name_category.name,
-                                "quantity": product.quantity,
-                                "price": product.price,
-                            }
-                        )
-                    elif name_category.product_category == "Vegetable":
-                        vegetables_items.append(
-                            {
-                                "product": name_category.name,
-                                "quantity": product.quantity,
-                                "price": product.price,
-                            }
-                        )
+                    reward_amount = name_category.reward_amount
+                    item_reward_total = reward_amount * product.quantity
+                    total_reward += item_reward_total
 
-                # Add to product_quantities
-                product_quantities.append((product.id, product.quantity))
-            with app.app_context():
+                    # Add to product_quantities (now includes all products)
+                    product_quantities.append((product.id, product.quantity))
 
-                def execute_order():
-                    add_order(
-                        db=db,
-                        customer_id=customer_id,
-                        total_amount=total_amount,
-                        delivery_address=delivery_address,
-                        fruits_items=fruits_items,
-                        vegetables_items=vegetables_items,
-                        product_quantities=product_quantities,
-                        reward_amount=total_reward,
-                    )
+            # Function to execute order creation and emit event
+            def execute_order():
+                add_order(
+                    db=db,
+                    customer_id=customer_id,
+                    total_amount=total_amount,
+                    delivery_address=delivery_address,
+                    product_quantities=product_quantities,  # Only using this now
+                    reward_amount=total_reward,
+                )
 
-                    socketio.emit(
-                        "new_order",
-                        {
-                            "customer_id": customer_id,
-                            "total_amount": total_amount,
-                            "delivery_address": delivery_address,
-                            "fruits_items": fruits_items,
-                            "vegetables_items": vegetables_items,
-                        },
-                    )
+                socketio.emit(
+                    "new_order",
+                    {
+                        "customer_id": customer_id,
+                        "total_amount": total_amount,
+                        "delivery_address": delivery_address,
+                        "product_quantities": product_quantities,  # Send all products as quantities
+                    },
+                )
 
-                if total_amount >= 1.00:
-                    execute_order()
-                    result = confirm_order_with_payment(
-                        whatsapp,
-                        phone,
-                        ListSection,
-                        SectionRow,
-                        total_amount,
-                        total_reward,
-                        fruits_items,
-                        vegetables_items,
-                        product_quantities,
-                        username,
-                        delivery_address,
-                    )
-                else:
-                    result = order_amount_restriction(
-                        whatsapp,
-                        phone,
-                        ListSection,
-                        SectionRow,
-                        total_amount,
-                        fruits_items,
-                        vegetables_items,
-                        product_quantities,
-                        customer_id,
-                        delivery_address,
-                    )
+            if total_amount >= 1.00:
+                execute_order()
+                result = confirm_order_with_payment(
+                    whatsapp,
+                    phone,
+                    ListSection,
+                    SectionRow,
+                    total_amount,
+                    total_reward,
+                    product_quantities,  # Send only product quantities now
+                    username,
+                    delivery_address,
+                )
+            else:
+                result = order_amount_restriction(
+                    whatsapp,
+                    phone,
+                    ListSection,
+                    SectionRow,
+                    total_amount,
+                    product_quantities,  # Send only product quantities now
+                    customer_id,
+                    delivery_address,
+                )
 
-                if result:
-                    message_sent, res = result
-                else:
-                    message_sent, res = None
-
+            if result:
+                message_sent, res = result
+            else:
+                message_sent, res = None
         elif isinstance(message, MessageStatus):
             print(message)
             pass
