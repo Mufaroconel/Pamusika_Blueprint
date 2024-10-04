@@ -62,6 +62,7 @@ from dboperations import (
     get_customer_by_id,
     get_reward_amount_for_order,
     get_order_products,
+    begin_withdrawal,
 )
 from models import db, Customer, init_db, Order, db_session, CustomerReward, Withdrawal
 from messages.app_logic_messages import (
@@ -99,6 +100,7 @@ from messages.app_logic_messages import (
     insufficient_balance_for_order_notification,
     withdrawal_initiated,
     insufficient_reward_balance,
+    send_withdrawal_success_message,
 )
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 
@@ -263,7 +265,15 @@ def manage_products():
 def view_rewards():
     """View the list of all rewards for customers."""
     rewards = CustomerReward.query.all()  # Fetch all customer rewards
-    pending_withdrawals = get_pending_withdrawals()
+    pending_withdrawals = get_pending_withdrawals()  # Fetch pending withdrawals
+
+    # Fetch customer addresses for each withdrawal
+    for withdrawal in pending_withdrawals:
+        customer = Customer.query.get(withdrawal.customer_id)  # Get customer by ID
+        withdrawal.address = (
+            customer.address if customer else "Address not found"
+        )  # Add address to withdrawal
+
     return render_template(
         "rewards.html", rewards=rewards, pending_withdrawals=pending_withdrawals
     )
@@ -273,9 +283,19 @@ def view_rewards():
 def withdrawal_confirmation(customer_id):
     # Call the function to update withdrawal status to "Completed" directly
     success, message = update_withdrawal_status_to_completed(customer_id)
-
+    phone = get_customer_by_id(customer_id).phone
+    name = get_customer_by_id(customer_id).name
+    amount = message
     # Handle the outcome of the function
     if success:
+        send_withdrawal_success_message(
+            whatsapp,
+            phone,
+            name,
+            amount,
+            ListSection,
+            SectionRow,
+        )
         flash("Withdrawal status updated to 'Initiated' successfully.", "success")
     else:
         flash(message or "Failed to update withdrawal status.", "danger")
@@ -313,23 +333,36 @@ def update_reward(customer_id):
 def initialize_withdrawal():
     customer_id = request.form["customer_id"]
     withdrawal_amount = request.form["withdrawal_amount"]
-    intiating_withdrawal = initiate_withdrawal(withdrawal_amount, customer_id)
     customer = get_customer_by_id(customer_id)
     phone = customer.phone
     fullname = customer.name
     address = customer.address
-    if intiating_withdrawal:
-        flash(f"Withdrawal initiated for Customer {customer_id}.", "success")
-        confirm_withdrawal_message(
-            whatsapp,
-            phone,
-            fullname,
-            address,
-            withdrawal_amount,
-            ListSection,
-            SectionRow,
-        )
-        return redirect(url_for("view_rewards"))  # Redirect to the withdrawal page
+    balance = get_total_reward_for_customer(phone)
+    if balance >= 1:
+        print(balance)
+        if float(withdrawal_amount) < balance:
+            print(withdrawal_amount)
+            begining_withdrawal = begin_withdrawal(withdrawal_amount, customer_id)
+            if begining_withdrawal:
+                flash(f"Withdrawal initiated for Customer {customer_id}.", "success")
+                confirm_withdrawal_message(
+                    whatsapp,
+                    phone,
+                    fullname,
+                    address,
+                    withdrawal_amount,
+                    ListSection,
+                    SectionRow,
+                )
+                return redirect(
+                    url_for("view_rewards")
+                )  # Redirect to the withdrawal page
+        else:
+            flash("Insufficient balance to initiate withdrawal.", "danger")
+            return redirect(url_for("view_rewards"))
+    else:
+        flash("Withdrawal amount should be greater than 1.", "danger")
+        return redirect(url_for("view_rewards"))
 
 
 @app.route("/products/delete/<product_id>", methods=["POST"])
@@ -554,7 +587,7 @@ class GroupAPI(MethodView):
                                 )
                             else:
                                 if balance >= float(amount):
-                                    initiate_withdrawal(amount, customer_id)
+                                    begin_withdrawal(amount, customer_id)
                                     confirm_withdrawal_message(
                                         whatsapp,
                                         phone,
@@ -659,6 +692,11 @@ class GroupAPI(MethodView):
                     subtract_from_reward(customer_id, withdrawal_amount)
                     update_last_withdrawal_status_to_initiated(customer_id)
                     withdrawal_initiated(whatsapp, phone, ListSection, SectionRow)
+                    whatsapp.send_text(
+                        to="263711475883",
+                        body=f"Hi {username}, you have a new withdrawal order from {phone}. Check your dashboard for more details. https://0gvvb2gw-5000.uks1.devtunnels.ms/rewards",
+                    )
+                    update_customer_state(phone, None)
                 else:
                     insufficient_balance_for_order_notification(
                         whatsapp,

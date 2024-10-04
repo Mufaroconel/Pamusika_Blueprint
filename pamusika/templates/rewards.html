@@ -105,6 +105,7 @@
                         <th>Customer Name</th>
                         <th>Withdrawal Amount</th>
                         <th>Status</th>
+                        <th>Address</th> <!-- New column for Address -->
                         <th>Confirm Withdrawal</th>
                     </tr>
                 </thead>
@@ -115,6 +116,7 @@
                         <td>{{ withdrawal.customer.name }} {{ withdrawal.customer.surname }}</td>
                         <td>{{ withdrawal.amount }}</td>
                         <td>{{ withdrawal.status }}</td>
+                        <td>{{ withdrawal.address }}</td> <!-- Displaying the Address -->
                         <td>
                             <form action="{{ url_for('withdrawal_confirmation', customer_id=withdrawal.customer_id) }}" method="POST" class="d-inline">
                                 <button type="submit" class="btn btn-success">Confirm</button>

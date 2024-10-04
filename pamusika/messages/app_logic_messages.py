@@ -1,5 +1,9 @@
 import json
-from dboperations import get_available_products_by_category, get_product_details, get_order_products
+from dboperations import (
+    get_available_products_by_category,
+    get_product_details,
+    get_order_products,
+)
 
 
 def request_user_name(whatsapp, username, phone):
@@ -1043,6 +1047,7 @@ def order_packed(whatsapp, phone_number, order, ListSection, SectionRow):
     except Exception as e:
         return False, f"Failed to send packed order message: {str(e)}"
 
+
 def order_on_way(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
         # Fetch product details using the get_order_products function
@@ -1057,7 +1062,9 @@ def order_on_way(whatsapp, phone_number, order, ListSection, SectionRow):
             formatted_items.append(item_str)
 
         # Create strings for products
-        products_str = "\n".join(formatted_items) if formatted_items else "No products ordered"
+        products_str = (
+            "\n".join(formatted_items) if formatted_items else "No products ordered"
+        )
 
         # Send WhatsApp message
         whatsapp.send_interactive_list(
@@ -1104,6 +1111,7 @@ def order_on_way(whatsapp, phone_number, order, ListSection, SectionRow):
     except Exception as e:
         return False, f"Failed to send order on the way message: {str(e)}"
 
+
 def order_delivered(
     whatsapp, phone_number, order, new_reward_balance, ListSection, SectionRow
 ):
@@ -1120,7 +1128,9 @@ def order_delivered(
             formatted_items.append(item_str)
 
         # Create strings for products
-        products_str = "\n".join(formatted_items) if formatted_items else "No products ordered"
+        products_str = (
+            "\n".join(formatted_items) if formatted_items else "No products ordered"
+        )
 
         # Send WhatsApp message
         whatsapp.send_interactive_list(
@@ -1163,11 +1173,12 @@ def order_delivered(
             ],
             footer="#MufakoseHarvest #MagandangaDelights",
         )
-        
+
         return True, "Order delivered status message sent successfully."
     except Exception as e:
         return False, f"Failed to send order delivered message: {str(e)}"
-    
+
+
 def no_orders(whatsapp, phone_number, ListSection, SectionRow):
     try:
         whatsapp.send_interactive_list(
@@ -1700,6 +1711,55 @@ def confirm_withdrawal_message(
         return True, "Confirmation message sent successfully."
     except Exception as e:
         return False, f"Failed to send confirmation message: {str(e)}"
+
+
+def send_withdrawal_success_message(
+    whatsapp,
+    phone_number,
+    username,
+    amount,
+    ListSection,
+    SectionRow,
+):
+    try:
+        # Send a success message for the completed withdrawal
+        whatsapp.send_interactive_list(
+            to=phone_number,
+            header="✅ Withdrawal Successful",
+            body=(
+                f"Hi {username},\n\n"
+                f"Your withdrawal of *${amount}* has been successfully completed! 🎉\n\n"
+                "Thank you for using our service!\n\n"
+                "If you have any questions or need further assistance, feel free to reach out."
+            ),
+            button="Choose an Option",
+            sections=[
+                ListSection(
+                    title="Next Steps",
+                    rows=[
+                        SectionRow(
+                            id="view_balance",
+                            title="View Balance",
+                            description="Check your current balance.",
+                        ),
+                        SectionRow(
+                            id="withdraw_reward",
+                            title="Make Another Withdrawal",
+                            description="Withdraw more funds.",
+                        ),
+                        SectionRow(
+                            id="contact_support",
+                            title="Contact Support",
+                            description="Get help with any issues.",
+                        ),
+                    ],
+                ),
+            ],
+            footer="We appreciate your business!",
+        )
+        return True, "Withdrawal success message sent successfully."
+    except Exception as e:
+        return False, f"Failed to send withdrawal success message: {str(e)}"
 
 
 def rewards_balance(whatsapp, phone_number, username, balance, ListSection, SectionRow):

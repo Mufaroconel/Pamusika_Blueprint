@@ -234,7 +234,6 @@ def subtract_from_reward(customer_id, amount):
         db.session.rollback()
         return None, f"An error occurred while subtracting rewards: {str(e)}"
 
-
 def update_withdrawal_status_to_completed(customer_id):
     try:
         # Find the last pending withdrawal for the customer, sorted by the latest initiation date
@@ -243,20 +242,23 @@ def update_withdrawal_status_to_completed(customer_id):
             .order_by(Withdrawal.initiated_at.desc())
             .first()
         )
+        
         if not last_withdrawal:
-            print("No initiated withdrawals found for this customer {customer_id}.")
+            print(f"No initiated withdrawals found for this customer {customer_id}.")
             return False, "No pending withdrawals found for this customer."
 
-        # Update the status to "Initiated" and set the initiated_at timestamp
+        # Store the amount before updating the status
+        withdrawal_amount = last_withdrawal.amount  # Assuming 'amount' is a field in your Withdrawal model
+
+        # Update the status to "Completed" and set the initiated_at timestamp
         last_withdrawal.status = "Completed"
-        print("completed")
-        last_withdrawal.initiated_at = datetime.now()
+        last_withdrawal.completed_at = datetime.now()  # You might want to track when it was completed
 
         # Commit the update to the database
         db.session.commit()
 
         print("Last pending withdrawal status updated to 'Completed' successfully.")
-        return True, "Withdrawal status updated successfully."
+        return True, withdrawal_amount  # Return the amount of the completed withdrawal
 
     except Exception as e:
         print(f"Error updating withdrawal status: {e}")
@@ -266,7 +268,6 @@ def update_withdrawal_status_to_completed(customer_id):
         # Roll back the session if there's an error
         print(f"An error occurred: {e}")
         db.session.rollback()
-
 
 def get_withdrawal_by_id(withdrawal_id):
     """Fetch the withdrawal record by ID."""
@@ -468,62 +469,6 @@ def user_exists(phone):
     user = Customer.query.filter_by(phone=phone).first()
     return user is not None
 
-
-# def add_order(
-#     db,
-#     customer_id,
-#     total_amount,
-#     reward_amount,
-#     delivery_address,
-#     fruits_items,
-#     vegetables_items,
-#     product_quantities,
-# ):
-#     """
-#     Adds a new order to the database with associated products.
-
-#     Args:
-#         db: SQLAlchemy database instance.
-#         customer_id (int): The ID of the customer placing the order.
-#         total_amount (float): The total amount of the order.
-#         delivery_address (str): The address for order delivery.
-#         fruits_items (list): List of fruits items to be included in the order.
-#         vegetables_items (list): List of vegetables items to be included in the order.
-#         product_quantities (list of tuples): Each tuple contains (product_id, quantity).
-
-#     Returns:
-#         Order: The created Order object.
-#     """
-#     # Create a new Order instance
-#     new_order = Order(
-#         customer_id=customer_id,
-#         total_amount=total_amount,
-#         delivery_address=delivery_address,
-#         reward_amount=reward_amount,
-#     )
-
-#     # Set the fruits and vegetables items
-#     new_order.set_fruits_items(fruits_items)
-#     new_order.set_vegetables_items(vegetables_items)
-
-#     # Add the order to the session
-#     db.session.add(new_order)
-#     db.session.commit()  # Commit to get the order ID
-
-#     # Associate products with the order
-#     for product_id, quantity in product_quantities:
-#         db.session.execute(
-#             order_products.insert().values(
-#                 order_id=new_order.id, product_id=product_id, quantity=quantity
-#             )
-#         )
-
-#     # Commit the changes to the database
-#     db.session.commit()
-
-#     return new_order
-
-
 def add_order(
     db,
     customer_id,
@@ -624,28 +569,6 @@ def get_order_products(order_id):
     return order_products_details
 
 
-# def query_orders(order_id=None, customer_id=None, status=None):
-#     """
-#     Query orders from the database based on the provided filters.
-
-#     :param order_id: The ID of the order to retrieve (optional).
-#     :param customer_id: The ID of the customer whose orders to retrieve (optional).
-#     :param status: The status of the orders to retrieve (optional).
-#     :return: A list of Order objects matching the query.
-#     """
-#     query = Order.query
-
-#     if order_id:
-#         query = query.filter_by(id=order_id)
-#     if customer_id:
-#         query = query.filter_by(customer_id=customer_id)
-#     if status:
-#         query = query.filter_by(status=status)
-
-#     return query.all()
-
-
-##
 def query_orders(
     order_id=None, customer_id=None, status=None, start_date=None, end_date=None
 ):
@@ -817,6 +740,7 @@ def get_total_reward_for_customer(phone):
         return None  # Return None on error
 
 
+
 def initiate_withdrawal(amount, customer_id):
     try:
         # Check if the customer exists
@@ -830,6 +754,36 @@ def initiate_withdrawal(amount, customer_id):
             customer_id=customer_id,
             amount=amount,
             status="Initiated",  # Withdrawal is initiated with status Pending
+            initiated_at=datetime.now(),
+            method="Withdrawal",  # Default method, can be updated based on context
+        )
+
+        # Add the new withdrawal to the session and commit to the database
+        db.session.add(new_withdrawal)
+        db.session.commit()
+
+        print(f"Withdrawal of {amount} initiated for Customer ID {customer_id}.")
+        return new_withdrawal  # Return the created withdrawal object
+
+    except SQLAlchemyError as e:
+        # Handle any database errors and rollback the transaction
+        print(f"An error occurred: {e}")
+        db.session.rollback()
+        return None  # Return None on error
+
+def begin_withdrawal(amount, customer_id):
+    try:
+        # Check if the customer exists
+        customer = Customer.query.get(customer_id)
+        if not customer:
+            print(f"Customer with ID {customer_id} not found.")
+            return None
+
+        # Create a new withdrawal record
+        new_withdrawal = Withdrawal(
+            customer_id=customer_id,
+            amount=amount,
+            status="Pending",  # Withdrawal is initiated with status Pending
             initiated_at=datetime.now(),
             method="Withdrawal",  # Default method, can be updated based on context
         )
