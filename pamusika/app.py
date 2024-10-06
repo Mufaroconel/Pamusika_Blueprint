@@ -111,6 +111,7 @@ from location_restriction import validate_address
 from functools import wraps
 from datetime import timedelta
 from flask_socketio import SocketIO, emit
+from validate_amount import validate_withdrawal_amount
 
 load_dotenv()
 wa_access_token = os.getenv("WA_TOKEN")
@@ -571,48 +572,52 @@ class GroupAPI(MethodView):
                                 update_customer_state(phone, "collecting_address")
                     elif user.state == "withdraw_reward":
                         amount = message.body
-                        balance = get_total_reward_for_customer(phone)
-                        customer = get_customer_by_phone(phone)
-                        address = customer.address
-                        if customer:
-                            customer_id = customer.id
-                            print(customer_id, address)
-                            if float(amount) < 1:
-                                minimum_withdrawal_warning(
-                                    whatsapp,
-                                    phone,
-                                    username,
-                                    ListSection,
-                                    SectionRow,
-                                )
-                            else:
-                                if balance >= float(amount):
-                                    begin_withdrawal(amount, customer_id)
-                                    confirm_withdrawal_message(
+                        amount_validator = validate_withdrawal_amount(
+                            amount, whatsapp, phone
+                        )
+                        if amount_validator:
+                            balance = get_total_reward_for_customer(phone)
+                            customer = get_customer_by_phone(phone)
+                            address = customer.address
+                            if customer:
+                                customer_id = customer.id
+                                print(customer_id, address)
+                                if float(amount) < 1:
+                                    minimum_withdrawal_warning(
                                         whatsapp,
                                         phone,
                                         username,
-                                        address,
-                                        amount,
                                         ListSection,
                                         SectionRow,
                                     )
-                                    print("withdrawal message sent")
                                 else:
-                                    reward_balance = get_total_reward_for_customer(
-                                        phone
-                                    )
-                                    print(reward_balance)
-                                    insufficient_balance_notification(
-                                        whatsapp,
-                                        phone,
-                                        username,
-                                        reward_balance,
-                                        ListSection,
-                                        SectionRow,
-                                    )
-                        else:
-                            print("no customer found")
+                                    if balance >= float(amount):
+                                        begin_withdrawal(amount, customer_id)
+                                        confirm_withdrawal_message(
+                                            whatsapp,
+                                            phone,
+                                            username,
+                                            address,
+                                            amount,
+                                            ListSection,
+                                            SectionRow,
+                                        )
+                                        print("withdrawal message sent")
+                                    else:
+                                        reward_balance = get_total_reward_for_customer(
+                                            phone
+                                        )
+                                        print(reward_balance)
+                                        insufficient_balance_notification(
+                                            whatsapp,
+                                            phone,
+                                            username,
+                                            reward_balance,
+                                            ListSection,
+                                            SectionRow,
+                                        )
+                            else:
+                                print("no customer found")
                     elif user.state == "confirm_withdraw":
                         whatsapp.send_text(to=phone, body="withdrawal confirmed")
                         update_customer_state(phone, None)
