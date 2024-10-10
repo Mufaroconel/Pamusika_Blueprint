@@ -12,6 +12,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask.views import MethodView
 from wa_cloud_py import WhatsApp
 import math
+import random
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # from wa_cloud_py.messages.types import MessageStatus, UserMessage, TextMessage, OrderMessage, InteractiveListMessage # latest version 0.1.7
 from wa_cloud_py.message_types import (
@@ -64,7 +66,16 @@ from dboperations import (
     get_order_products,
     begin_withdrawal,
 )
-from models import db, Customer, init_db, Order, db_session, CustomerReward, Withdrawal
+from models import (
+    db,
+    Customer,
+    init_db,
+    Order,
+    db_session,
+    CustomerReward,
+    Withdrawal,
+    Employee,
+)
 from messages.app_logic_messages import (
     greet_user_and_select_option,
     send_catalog,
@@ -101,6 +112,7 @@ from messages.app_logic_messages import (
     withdrawal_initiated,
     insufficient_reward_balance,
     send_withdrawal_success_message,
+    send_otp_via_whatsapp,
 )
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
 
@@ -112,6 +124,7 @@ from functools import wraps
 from datetime import timedelta
 from flask_socketio import SocketIO, emit
 from validate_amount import validate_withdrawal_amount
+import string
 
 load_dotenv()
 wa_access_token = os.getenv("WA_TOKEN")
@@ -119,7 +132,10 @@ phone_id = os.getenv("PHONE_ID")
 verify_token = os.getenv("VERIFY_TOKEN")
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///musikatestdb.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///musikatest_5db.db"
+# app.config["SQLALCHEMY_DATABASE_URI"] = (
+# "postgresql://uep1bjqsmff4ei:paa7a7cf74e5bb627a7d1ab512cc06d2cc8be231f249e7a9936a8ed8307a2bd24@cfv89ambqptmdb.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d26o11i55bsuha"
+# )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = "secretkey"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=12)
@@ -152,6 +168,43 @@ def index():
     return redirect(url_for("login"))
 
 
+@app.route("/register", methods=["GET"])
+def register():
+    return render_template("register.html")
+
+
+@app.route("/send_otp", methods=["POST"])
+def send_otp():
+    email = request.form["email"]
+    employee_phone = request.form["phone"]
+    region = request.form["region"]
+
+    # Generate a unique OTP (e.g., 6-digit number)
+    otp = "".join(random.choices(string.digits, k=6))
+
+    # Send the OTP to your WhatsApp number
+    send_otp_via_whatsapp(otp, whatsapp, email, region)
+
+    # Hash the OTP before saving it (as a password)
+    hashed_password = generate_password_hash(otp)
+
+    # Save the user with the hashed password (you may want to check if the user already exists)
+    new_user = Employee(
+        username=email,
+        password_hash=hashed_password,
+        phone=employee_phone,
+        region=region,
+    )  # Adjust phone as needed
+    db.session.add(new_user)
+    db.session.commit()
+
+    flash("OTP sent successfully! Please check your WhatsApp.", "success")
+
+    return redirect(
+        url_for("login")
+    )  # Redirect to login or another page after sending OTP
+
+
 # Login Route
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -159,7 +212,10 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        if username == valid_username and password == valid_password:
+        # Query the Employee model to find the user by username
+        employee = Employee.query.filter_by(username=username).first()
+
+        if employee and check_password_hash(employee.password_hash, password):
             session.permanent = True
             session["user"] = username
             flash("Login successful!", "success")
@@ -530,7 +586,7 @@ class GroupAPI(MethodView):
                             message_sent, res = None
                     elif user.state == "editing_name":
                         user.name = message.body
-                        update_customer_state(phone, "confirming_user_profile")
+                        update_customer_state(phone, "confirming_profile")
                         name = user.name
                         address = user.address
                         message_sent, res = confirm_user_details(
@@ -544,12 +600,17 @@ class GroupAPI(MethodView):
                         )
                     elif user.state == "collecting_address":
                         address = message.body
-                        is_valid, suggestion = validate_address(address)
+                        is_valid, suggestion, region = validate_address(
+                            address
+                        )  # Update to capture region
                         if is_valid:
                             user.address = address
-                            update_customer_state(phone, "confirming_user_profile")
+                            user.region = region
+                            update_customer_state(phone, "confirming_profile")
+
                             name = user.name
                             address = user.address
+
                             message_sent, res = confirm_user_details(
                                 whatsapp,
                                 phone,
@@ -699,7 +760,7 @@ class GroupAPI(MethodView):
                     withdrawal_initiated(whatsapp, phone, ListSection, SectionRow)
                     whatsapp.send_text(
                         to="263711475883",
-                        body=f"Hi {username}, you have a new withdrawal order from {phone}. Check your dashboard for more details. https://0gvvb2gw-5000.uks1.devtunnels.ms/rewards",
+                        body=f"Hi {username}, you have a new withdrawal order from {phone}. Check your dashboard for more details. https://musika-d2fb0b8da611.herokuapp.com/rewards",
                     )
                     update_customer_state(phone, None)
                 else:
@@ -733,7 +794,7 @@ class GroupAPI(MethodView):
                     order_confirmed(whatsapp, phone, ListSection, SectionRow)
                     whatsapp.send_text(
                         to="263711475883",
-                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://0gvvb2gw-5000.uks1.devtunnels.ms/order/{order_id}",
+                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://musika-d2fb0b8da611.herokuapp.com/order/{order_id}",
                     )
                 else:
                     pass
@@ -761,7 +822,7 @@ class GroupAPI(MethodView):
                         order_confirmed(whatsapp, phone, ListSection, SectionRow)
                         whatsapp.send_text(
                             to="263711475883",
-                            body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://0gvvb2gw-5000.uks1.devtunnels.ms/order/{order_id}",
+                            body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://musika-d2fb0b8da611.herokuapp.com/order/{order_id}",
                         )
                 else:
                     insufficient_balance_for_order_notification(
@@ -787,7 +848,7 @@ class GroupAPI(MethodView):
                     order_confirmed(whatsapp, phone, ListSection, SectionRow)
                     whatsapp.send_text(
                         to="263711475883",
-                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://0gvvb2gw-5000.uks1.devtunnels.ms/order/{order_id}",
+                        body=f"Hi {username}, you have a new order from {phone}. Check your dashboard for more details. https://musika-d2fb0b8da611.herokuapp.com/order/{order_id}",
                     )
                     print(new_customer_reward)
                     print(rounded_balance, total_amount)
@@ -981,7 +1042,7 @@ class GroupAPI(MethodView):
 app.add_url_rule("/webhook", view_func=GroupAPI.as_view("wa_webhook"))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
 
     with app.app_context():
         db.create_all()

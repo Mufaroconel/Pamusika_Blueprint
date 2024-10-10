@@ -2,6 +2,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 db_session = db.session
@@ -10,17 +11,20 @@ db_session = db.session
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.String(15), unique=True, nullable=False)
-    username = db.Column(
-        db.String(100), unique=True, nullable=True
-    )  # Initially, this can be null
-    address = db.Column(db.String(255), nullable=True)  # Initially, this can be null
+    username = db.Column(db.String(100), unique=True, nullable=True)
+    address = db.Column(db.String(255), nullable=True)
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
-    name = db.Column(db.String(100), nullable=True)  # Initially, this can be null
-    state = db.Column(db.String(20), nullable=True)  # Initially, this can be null
+    name = db.Column(db.String(100), nullable=True)
+    state = db.Column(db.String(20), nullable=True)
+    region = db.Column(db.String(100), nullable=True)
 
     def __repr__(self):
-        return f"<Customer {self.id} - Phone: {self.phone}, Username: {self.username}, Name: {self.name}, State: {self.state}>"
+        return (
+            f"<Customer {self.id} - Phone: {self.phone}, "
+            f"Username: {self.username}, Name: {self.name}, "
+            f"State: {self.state}, Region: {self.region}>"
+        )
 
 
 class Product(db.Model):
@@ -41,65 +45,6 @@ class Product(db.Model):
             f"Selling Price: {self.selling_price} - Reward: {self.reward_amount} {self.currency} - "
             f"Available: {self.availability}>"
         )
-
-
-# class Order(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"), nullable=False)
-#     order_date = db.Column(db.DateTime, nullable=False, default=datetime.now)
-#     status = db.Column(db.String(50), nullable=False, default="Pending")
-#     total_amount = db.Column(db.Float, nullable=True)
-#     delivery_address = db.Column(db.String(255), nullable=True)
-
-#     # Store items as JSON-encoded strings
-#     fruits_items = db.Column(db.Text, nullable=True)  # JSON-encoded string for fruits
-#     vegetables_items = db.Column(
-#         db.Text, nullable=True
-#     )  # JSON-encoded string for vegetables
-
-#     # New fields to store rewards
-#     reward_amount = db.Column(
-#         db.Float, nullable=False, default=0.0
-#     )  # Total reward earned for this order
-#     date = db.Column(
-#         db.DateTime, nullable=False, default=datetime.now
-#     )  # Date when reward was earned
-
-#     def set_fruits_items(self, items):
-#         """Set the fruits items by encoding them as a JSON string."""
-#         self.fruits_items = json.dumps(items)
-
-#     def get_fruits_items(self):
-#         """Get the fruits items by decoding the JSON string."""
-#         return json.loads(self.fruits_items)
-
-#     def set_vegetables_items(self, items):
-#         """Set the vegetables items by encoding them as a JSON string."""
-#         self.vegetables_items = json.dumps(items)
-
-#     def get_vegetables_items(self):
-#         """Get the vegetables items by decoding the JSON string."""
-#         return json.loads(self.vegetables_items)
-
-#     def __repr__(self):
-#         return (
-#             f"<Order {self.id} - Status: {self.status}, Customer ID: {self.customer_id}, "
-#             f"Order Date: {self.order_date}, Total: {self.total_amount}, "
-#             f"Delivery Address: {self.delivery_address}, Reward Amount: {self.reward_amount}, "
-#             f"Date: {self.date}>"
-#         )
-
-
-# order_products = db.Table(
-#     "order_products",
-#     db.Column("order_id", db.Integer, db.ForeignKey("order.id"), primary_key=True),
-#     db.Column(
-#         "product_id", db.String(50), db.ForeignKey("product.id"), primary_key=True
-#     ),
-#     db.Column("quantity", db.Integer, nullable=False),
-# )
-
-###
 
 
 class Order(db.Model):
@@ -125,7 +70,9 @@ class Order(db.Model):
         # Create a list of product names and quantities
         product_details = []
         for product in self.products:  # Accessing related products
-            product_details.append(f"{product.name}")  # Assuming 'name' is an attribute of Product
+            product_details.append(
+                f"{product.name}"
+            )  # Assuming 'name' is an attribute of Product
 
         # Join product details into a string
         products_str = ", ".join(product_details) if product_details else "No products"
@@ -189,6 +136,30 @@ class Withdrawal(db.Model):
             f"Initiated At: {self.initiated_at}, Confirmed At: {self.confirmed_at}, "
             f"Method: {self.method}>"
         )
+
+
+class Employee(db.Model):
+    __tablename__ = "employees"
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)  # Store hashed password
+    phone = db.Column(db.String(15), unique=True, nullable=False)
+    region = db.Column(db.String(100), nullable=True)  # New field for region
+
+    def __repr__(self):
+        return (
+            f"<Employee {self.id} - Username: {self.username}, "
+            f"Phone: {self.phone}, Region: {self.region}>"
+        )
+
+    def set_password(self, password):
+        """Hash the password for secure storage."""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Check if the provided password matches the stored hash."""
+        return check_password_hash(self.password_hash, password)
 
 
 def init_db(app):

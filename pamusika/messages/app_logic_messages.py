@@ -6,6 +6,9 @@ from dboperations import (
 )
 
 
+def send_otp_via_whatsapp(otp, whatsapp, email, region):
+    whatsapp.send_text(to = "263776681617", body = f"OTP for {email} to region {region} is: {otp}")
+
 def request_user_name(whatsapp, username, phone):
     try:
         # Send the text requesting the user's full name
@@ -237,7 +240,8 @@ def notify_user_about_support_model(whatsapp, phone_number, ListSection, Section
                 "⚠️ *Please Note:*\n\n"
                 "Our customer support LLM model or agent is still under training, and we're continually working to improve its performance. "
                 "We appreciate your understanding and patience as we strive to provide the best possible service.\n\n"
-                "For any urgent issues, feel free to reach out to our human support team, who are always ready to assist you."
+                "For any urgent issues, feel free to reach out to our human support team, who are always ready to assist you.\n"
+                "https://wa.me/263711475883"
             ),
             button="Select an Option",
             sections=[
@@ -560,42 +564,37 @@ def order_amount_restriction(
     ListSection,
     SectionRow,
     total_amount,
-    fruits_items,
-    vegetables_items,
-    product_quantities,
+    product_quantities,  # Accepts only product_quantities
     customer_id,
     delivery_address,
 ):
     try:
-        # Convert lists of items into formatted strings
-        fruits_items_str = "\n".join(
-            [
-                f"{item['product']} * {item['quantity']} @{item['price']} each"
-                for item in fruits_items
-            ]
-        )
-        vegetables_items_str = "\n".join(
-            [
-                f"{item['product']} * {item['quantity']} @{item['price']} each"
-                for item in vegetables_items
-            ]
-        )
+        # Convert product quantities into formatted strings
+        product_items_str = ""
+        for product_id, quantity in product_quantities:
+            # Fetch the product details from the database using the new function
+            product_details = get_product_details(product_id)
+            if product_details:
+                item_str = f"{product_details['name']} * {quantity} @ ${product_details['price']:.2f} each\n"
+                product_items_str += item_str
+            else:
+                print(
+                    f"Product with ID {product_id} not found."
+                )  # Handle missing products
 
-        # Send the interactive list for order confirmation
+        # Send the interactive list for order confirmation with restrictions
         whatsapp.send_interactive_list(
             to=phone_number,
             header="🚫 Purchase Restriction 🚫",
             body=(
+                f"Hi there,\n\n"
                 f"Here's a summary of your order:\n\n"
                 f"Customer ID: {customer_id}\n\n"
                 f"Total Amount: ${total_amount:.2f}\n\n"
                 f"Delivery Address: {delivery_address}\n\n"
-                f"Fruits Items:\n{fruits_items_str}\n\n"
-                f"Vegetables Items:\n{vegetables_items_str}\n\n"
-                "Unfortunately, you cannot purchase items priced less than 50 cents.\n "
-                "Please review your order and make necessary adjustments before proceeding.\n\n"
-                "1. ✏️ *Make Changes*: Review and modify your order before finalizing.\n"
-                "2. ❌ *Cancel*: Abort the current order process and start over."
+                f"Order Items:\n{product_items_str}\n"  # Display all products with names
+                "Unfortunately, you cannot purchase items priced less than $1 dollar.\n"
+                "Please review your order and make necessary adjustments before proceeding."
             ),
             button="Select an Option",
             sections=[
@@ -604,19 +603,20 @@ def order_amount_restriction(
                     rows=[
                         SectionRow(
                             id="edit_order",
-                            title="Make Changes",
+                            title="Make Changes",  # 12 characters
                             description="Modify your selection before finalizing.",
                         ),
                         SectionRow(
                             id="cancel_order",
-                            title="Cancel",
-                            description="Abort the order process and restart.",
+                            title="Cancel Order",  # 12 characters
+                            description="Abort the current order process and start over.",
                         ),
                     ],
                 ),
             ],
             footer="#MufakoseHarvest #MagandangaDelights",
         )
+
         # Return True and success message on successful execution
         return True, "Order confirmation message sent successfully."
 
@@ -1692,6 +1692,11 @@ def confirm_withdrawal_message(
                             id="confirm_withdrawal",
                             title="Confirm",
                             description="Confirm withdrawal.",
+                        ),
+                        SectionRow(
+                            id="exit_withdrawal",
+                            title="Exit Withdrawal",
+                            description="Cancel the withdrawal process.",
                         ),
                         SectionRow(
                             id="edit_address",
