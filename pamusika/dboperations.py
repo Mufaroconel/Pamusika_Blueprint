@@ -234,6 +234,7 @@ def subtract_from_reward(customer_id, amount):
         db.session.rollback()
         return None, f"An error occurred while subtracting rewards: {str(e)}"
 
+
 def update_withdrawal_status_to_completed(customer_id):
     try:
         # Find the last pending withdrawal for the customer, sorted by the latest initiation date
@@ -242,17 +243,21 @@ def update_withdrawal_status_to_completed(customer_id):
             .order_by(Withdrawal.initiated_at.desc())
             .first()
         )
-        
+
         if not last_withdrawal:
             print(f"No initiated withdrawals found for this customer {customer_id}.")
             return False, "No pending withdrawals found for this customer."
 
         # Store the amount before updating the status
-        withdrawal_amount = last_withdrawal.amount  # Assuming 'amount' is a field in your Withdrawal model
+        withdrawal_amount = (
+            last_withdrawal.amount
+        )  # Assuming 'amount' is a field in your Withdrawal model
 
         # Update the status to "Completed" and set the initiated_at timestamp
         last_withdrawal.status = "Completed"
-        last_withdrawal.completed_at = datetime.now()  # You might want to track when it was completed
+        last_withdrawal.completed_at = (
+            datetime.now()
+        )  # You might want to track when it was completed
 
         # Commit the update to the database
         db.session.commit()
@@ -268,6 +273,7 @@ def update_withdrawal_status_to_completed(customer_id):
         # Roll back the session if there's an error
         print(f"An error occurred: {e}")
         db.session.rollback()
+
 
 def get_withdrawal_by_id(withdrawal_id):
     """Fetch the withdrawal record by ID."""
@@ -337,13 +343,16 @@ def get_customer_by_id(customer_id):
     return customer
 
 
-def get_all_orders():
-    """Retrieve all orders, excluding those with status 'Delivered' or 'Cancelled', ordered by creation date in descending order."""
+def get_all_orders(employee_region):
+    """Retrieve all orders from customers in the same region as the logged-in employee,
+    excluding those with status 'Delivered' or 'Cancelled', ordered by creation date in ascending order."""
+
     CustomerAlias = aliased(Customer)
 
     orders = (
         db.session.query(Order, CustomerAlias.name.label("customer_name"))
         .join(CustomerAlias, Order.customer_id == CustomerAlias.id)
+        .filter(CustomerAlias.region == employee_region)  # Filter by employee's region
         .filter(Order.status.notin_(["Delivered", "Cancelled"]))
         .order_by(Order.order_date.asc())
         .all()
@@ -468,6 +477,7 @@ def user_exists(phone):
     """
     user = Customer.query.filter_by(phone=phone).first()
     return user is not None
+
 
 def add_order(
     db,
@@ -740,7 +750,6 @@ def get_total_reward_for_customer(phone):
         return None  # Return None on error
 
 
-
 def initiate_withdrawal(amount, customer_id):
     try:
         # Check if the customer exists
@@ -770,6 +779,7 @@ def initiate_withdrawal(amount, customer_id):
         print(f"An error occurred: {e}")
         db.session.rollback()
         return None  # Return None on error
+
 
 def begin_withdrawal(amount, customer_id):
     try:

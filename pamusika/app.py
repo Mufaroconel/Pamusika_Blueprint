@@ -205,6 +205,36 @@ def send_otp():
     )  # Redirect to login or another page after sending OTP
 
 
+@app.route("/change_password", methods=["GET", "POST"])
+def change_password():
+    user_id = session.get("user_id")  # Get user ID from session
+    if not user_id:
+        flash("You need to log in first.", "danger")
+        return redirect(url_for("login"))  # Redirect to login if not logged in
+
+    if request.method == "POST":
+        old_password = request.form["oldPassword"]
+        new_password = request.form["newPassword"]
+        confirm_password = request.form["confirmPassword"]
+
+        user = Employee.query.get(user_id)  # Fetch the user from the database
+
+        if user and check_password_hash(user.password_hash, old_password):
+            if new_password == confirm_password:
+                user.password_hash = generate_password_hash(new_password)
+                db.session.commit()  # Save the new password to the database
+                flash("Your password has been changed successfully!", "success")
+                return redirect(
+                    url_for("dashboard")
+                )  # Redirect to dashboard or another page
+            else:
+                flash("New passwords do not match.", "danger")
+        else:
+            flash("Old password is incorrect.", "danger")
+
+    return render_template("change_password.html")
+
+
 # Login Route
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -217,6 +247,7 @@ def login():
 
         if employee and check_password_hash(employee.password_hash, password):
             session.permanent = True
+            session["user_id"] = employee.id  # Store user ID in session
             session["user"] = username
             flash("Login successful!", "success")
             return redirect(url_for("dashboard"))
@@ -243,24 +274,29 @@ def dashboard():
     customer_name = request.args.get("customer_name")
     order_id = request.args.get("order_id")
     customer_id = request.args.get("customer_id")
-
+    # Fetching the logged-in user's information
+    user_id = session.get("user_id")  # Assuming user ID is stored in session
+    employee = Employee.query.get(user_id)  # Fetch the employee details
+    employee_region = employee.region
     if any([order_status, customer_name, order_id, customer_id]):
         orders = get_filtered_orders(order_status, customer_name, order_id, customer_id)
     else:
-        orders = get_all_orders()
+        orders = get_all_orders(employee_region)  # Fetch all orders
 
-    # users section
+    # Users section
     users = Customer.query.all()
     total_users = len(users)
 
-    # products section
+    # Products section
     products = get_products()
+
     return render_template(
         "dashboard.html",
         orders=orders,
         users=users,
         total_users=total_users,
         products=products,
+        employee=employee,  # Pass employee details to the template
     )
 
 
