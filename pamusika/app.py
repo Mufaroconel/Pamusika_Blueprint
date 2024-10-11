@@ -65,6 +65,9 @@ from dboperations import (
     get_reward_amount_for_order,
     get_order_products,
     begin_withdrawal,
+    update_product_availability,
+    add_product_availability,
+    get_products_by_region,
 )
 from models import (
     db,
@@ -75,6 +78,7 @@ from models import (
     CustomerReward,
     Withdrawal,
     Employee,
+    Product,
 )
 from messages.app_logic_messages import (
     greet_user_and_select_option,
@@ -115,6 +119,7 @@ from messages.app_logic_messages import (
     send_otp_via_whatsapp,
 )
 from wa_cloud_py.message_components import ListSection, SectionRow, CatalogSection
+from Pamusika_Investment_Rewards.reward_calculator import calculate_reward
 
 # from wa_cloud_py.components.messages import ListSection, SectionRow, CatalogSection # latest version 0.1.7
 from flask_migrate import Migrate
@@ -132,7 +137,7 @@ phone_id = os.getenv("PHONE_ID")
 verify_token = os.getenv("VERIFY_TOKEN")
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///musikatest_5db.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///musikatest_0_db.db"
 # app.config["SQLALCHEMY_DATABASE_URI"] = (
 # "postgresql://uep1bjqsmff4ei:paa7a7cf74e5bb627a7d1ab512cc06d2cc8be231f249e7a9936a8ed8307a2bd24@cfv89ambqptmdb.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d26o11i55bsuha"
 # )
@@ -198,7 +203,10 @@ def send_otp():
     db.session.add(new_user)
     db.session.commit()
 
-    flash("OTP sent successfully! Please check your WhatsApp.", "success")
+    flash(
+        "Agent created successfully! An OTP has been sent to the recruiter for verification.",
+        "success",
+    )
 
     return redirect(
         url_for("login")
@@ -284,7 +292,7 @@ def dashboard():
         orders = get_all_orders(employee_region)  # Fetch all orders
 
     # Users section
-    users = Customer.query.all()
+    users = Customer.query.filter_by(region=employee.region).all()
     total_users = len(users)
 
     # Products section
@@ -303,6 +311,10 @@ def dashboard():
 @app.route("/products", methods=["GET", "POST"])
 @login_required
 def manage_products():
+    user_id = session.get("user_id")  # Get user ID from session
+    employee = Employee.query.get(user_id)  # Fetch employee details
+    employee_region = employee.region  # Get the region of the logged-in employee
+
     if request.method == "POST":
         product_id = request.form.get("product_id")
         meta_id = request.form.get("meta_id")
@@ -312,9 +324,11 @@ def manage_products():
         currency = request.form.get("currency", "USD")
         product_category = request.form.get("product_category")
         availability = True if request.form.get("availability") else False
+        quantity = int(request.form.get("quantity", 0))  # Default to 0 if not provided
+        reward_amount = calculate_reward(cost_price, selling_price)
 
         if product_id:  # Update existing product
-            product = update_product(
+            updated_product = update_product(
                 product_id,
                 meta_id,
                 name,
@@ -322,42 +336,69 @@ def manage_products():
                 selling_price,
                 currency,
                 product_category,
-                availability,
             )
-            if product:
-                flash(
-                    f"Product '{name}' updated successfully. Reward: {product.reward_amount} {currency}.",
-                    "success",
+            
+            if updated_product:
+                flash(f"Product '{name}' updated successfully.", "success")
+
+                # Update ProductAvailability for this product in the employee's region
+                update_product_availability(
+                    updated_product.id, employee_region, reward_amount, availability, quantity
                 )
             else:
-                flash(f"Product with ID {product_id} not found.", "danger")
-        else:  # Add new product
-            new_product = add_new_product(
-                meta_id,
-                name,
-                cost_price,
-                selling_price,
-                currency,
-                product_category,
-                availability,
-            )
-            flash(
-                f"Product '{name}' added successfully. Reward: {new_product.reward_amount} {currency}.",
-                "success",
-            )
+                flash(f"Failed to update product '{name}'.", "danger")
+        
+        else:  # Add new product or record availability for existing product
+            existing_product = Product.query.filter_by(meta_id=meta_id).first()
+            if existing_product:
+                add_product_availability(
+                    existing_product.id,
+                    employee_region,
+                    reward_amount,
+                    availability,
+                    quantity,
+                )
+                flash(f"Availability record added for existing product '{existing_product.name}'!", "success")
+            else:
+                new_product = add_new_product(
+                    meta_id,
+                    name,
+                    cost_price,
+                    selling_price,
+                    currency,
+                    product_category,
+                )
+                if new_product:
+                    add_product_availability(
+                        new_product.id,
+                        employee_region,
+                        reward_amount,
+                        availability,
+                        quantity,
+                    )  
+                    flash(f"Product '{name}' added successfully!", "success")
+                else:
+                    flash(f"Error adding product '{name}'.", "danger")
 
         return redirect(url_for("manage_products"))
 
-    # GET request, render the template with all products
-    products = get_all_products()
-    return render_template("manage_products.html", products=products)
-
+    results = get_products_by_region(employee_region)
+    return render_template("manage_products.html", results=results)
 
 @app.route("/rewards")
 @login_required
 def view_rewards():
     """View the list of all rewards for customers."""
-    rewards = CustomerReward.query.all()  # Fetch all customer rewards
+    user_id = session.get("user_id")  # Assuming user ID is stored in session
+    employee = Employee.query.get(user_id)  # Fetch the employee details
+    employee_region = employee.region
+
+    rewards = (
+        db.session.query(CustomerReward)
+        .join(Customer)
+        .filter(Customer.region == employee_region)
+        .all()
+    )
     pending_withdrawals = get_pending_withdrawals()  # Fetch pending withdrawals
 
     # Fetch customer addresses for each withdrawal

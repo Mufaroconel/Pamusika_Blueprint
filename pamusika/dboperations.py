@@ -1,7 +1,15 @@
 # dboperations.py
 from datetime import datetime
 from models import db
-from models import Customer, Order, order_products, Product, CustomerReward, Withdrawal
+from models import (
+    Customer,
+    Order,
+    order_products,
+    Product,
+    CustomerReward,
+    Withdrawal,
+    ProductAvailability,
+)
 
 # from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import aliased
@@ -23,23 +31,97 @@ def get_product_by_id(product_id):
 
 # Function to add a new product
 def add_new_product(
-    meta_id, name, cost_price, selling_price, currency, product_category, availability
+    meta_id, name, cost_price, selling_price, currency, product_category
 ):
-    reward_amount = calculate_reward(cost_price, selling_price)  # Calculate reward
     new_product = Product(
-        id=str(uuid.uuid4()),  # Generate a unique UUID
+        id=str(uuid.uuid4()),  # Generate a unique ID for the product
         meta_id=meta_id,
         name=name,
         cost_price=cost_price,
         selling_price=selling_price,
-        reward_amount=reward_amount,  # Set reward amount
         currency=currency,
         product_category=product_category,
-        availability=availability,
     )
-    db.session.add(new_product)
-    db.session.commit()
-    return new_product
+
+    try:
+        db.session.add(new_product)
+        db.session.commit()
+        return new_product
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error adding product: {e}")
+        return None
+
+
+def add_product_availability(product_id, region, reward_amount, availability, quantity):
+    new_availability = ProductAvailability(
+        id=str(uuid.uuid4()),  # Generate a unique ID for the availability record
+        product_id=product_id,
+        region=region,
+        reward_amount=reward_amount,
+        availability=availability,
+        quantity=quantity,
+    )
+
+    try:
+        db.session.add(new_availability)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error adding product availability: {e}")
+
+
+def get_products_by_region(employee_region):
+    """Retrieve all products available in the specified region,
+    along with their reward amounts from ProductAvailability."""
+
+    # Fetch all product availability records for the specified region
+    available_products = ProductAvailability.query.filter_by(
+        region=employee_region
+    ).all()
+
+    if not available_products:
+        print(f"No products found for region: {employee_region}")
+        return []  # Return an empty list instead of None
+
+    # Extract product IDs from the availability records
+    product_ids = [availability.product_id for availability in available_products]
+
+    # Fetch products corresponding to those IDs
+    products = Product.query.filter(Product.id.in_(product_ids)).all()
+
+    # Create a mapping of product_id to availability details
+    reward_map = {
+        availability.product_id: {
+            "reward_amount": availability.reward_amount,
+            "availability": availability.availability,
+            "quantity": availability.quantity,
+            "region": availability.region,  # Include region here
+        }
+        for availability in available_products
+    }
+
+    # Combine product data with reward information
+    results = []
+    for product in products:
+        reward_info = reward_map.get(
+            product.id,
+            {
+                "reward_amount": 0,
+                "availability": False,
+                "quantity": 0,
+                "region": employee_region,
+            },
+        )
+
+        results.append(
+            {
+                "product": product,
+                **reward_info,  # Unpack the dictionary to add its keys and values
+            }
+        )
+
+    return results
 
 
 # Function to update an existing product
@@ -51,22 +133,48 @@ def update_product(
     selling_price,
     currency,
     product_category,
-    availability,
 ):
     product = Product.query.get(product_id)
-    if product:
-        product.meta_id = meta_id
-        product.name = name
-        product.cost_price = cost_price
-        product.selling_price = selling_price
-        product.reward_amount = calculate_reward(
-            cost_price, selling_price
-        )  # Recalculate reward
-        product.currency = currency
-        product.product_category = product_category
-        product.availability = availability
+
+    if not product:
+        print(f"Product with ID {product_id} not found.")
+        return None  # Explicitly return None if product is not found
+
+    # Update fields
+    product.meta_id = meta_id
+    product.name = name
+    product.cost_price = cost_price
+    product.selling_price = selling_price
+    product.currency = currency
+    product.product_category = product_category
+
+    try:
+        db.session.commit()  # Commit changes to the database
+        print(f"Product '{name}' updated successfully.")
+        return product  # Return updated product
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of error
+        print(f"Error updating product: {e}")
+        return None  # Return None on failure
+
+
+def update_product_availability(
+    product_id, region, reward_amount, availability, quantity
+):
+    availability_record = ProductAvailability.query.filter_by(
+        product_id=product_id, region=region
+    ).first()
+
+    if availability_record:
+        availability_record.availability = availability  # Update availability status
+        availability_record.quantity = quantity  # Update quantity
+        availability_record.reward_amount = reward_amount
         db.session.commit()
-    return product
+        print(f"Updated availability for Product ID: {product_id} in Region: {region}")
+    else:
+        print(
+            f"No availability record found for Product ID: {product_id} in Region: {region}"
+        )
 
 
 # Function to delete a product by ID

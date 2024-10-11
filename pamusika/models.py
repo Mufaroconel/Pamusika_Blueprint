@@ -33,17 +33,33 @@ class Product(db.Model):
     name = db.Column(db.String(255), nullable=False)
     cost_price = db.Column(db.Float, nullable=False)
     selling_price = db.Column(db.Float, nullable=False)
-    reward_amount = db.Column(db.Float, default=0.0)
     currency = db.Column(db.String(3), nullable=False, default="USD")
-    availability = db.Column(db.Boolean, nullable=False, default=True)
     product_category = db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
         return (
             f"<Product {self.name} - Category: {self.product_category} - "
             f"Meta ID: {self.meta_id} - Cost Price: {self.cost_price} - "
-            f"Selling Price: {self.selling_price} - Reward: {self.reward_amount} {self.currency} - "
+            f"Selling Price: {self.selling_price} - "
             f"Available: {self.availability}>"
+        )
+
+
+class ProductAvailability(db.Model):
+    __tablename__ = "product_availability"
+
+    id = db.Column(db.String(50), primary_key=True)
+    product_id = db.Column(db.String(50), nullable=False)
+    region = db.Column(db.String(100), nullable=False)
+    reward_amount = db.Column(db.Float, default=0.0)
+    availability = db.Column(db.Boolean, nullable=False, default=True)
+    quantity = db.Column(db.Integer, nullable=False, default=0)
+
+    def __repr__(self):
+        return (
+            f"<ProductAvailability Product ID: {self.product_id} - Region: {self.region} - "
+            f"Available: {self.availability} - Quantity: {self.quantity} - "
+            f"Reward Amount: {self.reward_amount}>"
         )
 
 

@@ -16,3 +16,5 @@ def calculate_reward(cost_price, selling_price):
     # Calculate reward based on the percentage of the profit
     reward = profit * reward_percentage
     return reward
+
+
