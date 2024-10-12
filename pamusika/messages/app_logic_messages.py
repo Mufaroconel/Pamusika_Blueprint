@@ -292,23 +292,23 @@ def send_catalog(
 
         # Create CatalogSection dynamically from the product categories and meta IDs
         product_sections = []
-        unique_meta_ids = set()  # To ensure unique product IDs
 
         for category, meta_ids in catalog_sections.items():
-            # Filter out duplicates
-            unique_meta_ids.update(meta_ids)
+            # Ensure unique product IDs for this category
+            unique_meta_ids = list(set(meta_ids))  # Remove duplicates
 
             # Create a section for each category with unique product IDs
             product_sections.append(
                 CatalogSection(
-                    title=category, retailer_product_ids=list(unique_meta_ids)
+                    title=category,
+                    retailer_product_ids=unique_meta_ids,  # Use unique_meta_ids directly
                 )
             )
 
         # Send the catalog product list message
         whatsapp.send_catalog_product_list(
-            to=phone_number,  # Recipient's phone number
-            catalog_id=catalog_id,  # The catalog ID to display
+            to=phone_number,
+            catalog_id=catalog_id,
             header="🍎🥦 Available Fresh Produce at Musika 🥕🍊",
             body=(
                 "🌟 Great! Let's get started with placing your order. I'll show you our catalog, and you can pick the items you'd like to buy. 🛒\n\n"
@@ -318,11 +318,9 @@ def send_catalog(
             footer="Enjoy free delivery on all orders today! 🚚",
         )
 
-        # Return True if successful
         return True, "Catalog sent successfully."
 
     except Exception as e:
-        # Handle the exception and return the error
         print(f"Error sending catalog: {str(e)}")  # Log the error for debugging
         return False, f"Failed to send catalog: {str(e)}"
 
