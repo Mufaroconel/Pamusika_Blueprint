@@ -38,10 +38,10 @@ class Product(db.Model):
 
     def __repr__(self):
         return (
+            f"Product Id: {self.id}>"
             f"<Product {self.name} - Category: {self.product_category} - "
             f"Meta ID: {self.meta_id} - Cost Price: {self.cost_price} - "
             f"Selling Price: {self.selling_price} - "
-            f"Available: {self.availability}>"
         )
 
 

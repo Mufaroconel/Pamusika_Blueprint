@@ -7,7 +7,10 @@ from dboperations import (
 
 
 def send_otp_via_whatsapp(otp, whatsapp, email, region):
-    whatsapp.send_text(to = "263776681617", body = f"OTP for {email} to region {region} is: {otp}")
+    whatsapp.send_text(
+        to="263776681617", body=f"OTP for {email} to region {region} is: {otp}"
+    )
+
 
 def request_user_name(whatsapp, username, phone):
     try:
@@ -278,16 +281,29 @@ def notify_user_about_support_model(whatsapp, phone_number, ListSection, Section
         return False, f"Failed to send interactive list: {str(e)}"
 
 
-def send_catalog(phone_number, catalog_id, whatsapp, CatalogSection, db_session):
+def send_catalog(
+    phone_number, catalog_id, whatsapp, CatalogSection, db_session, customer_region
+):
     try:
         # Get available products grouped by category using the helper function
-        catalog_sections = get_available_products_by_category(db_session)
+        catalog_sections = get_available_products_by_category(
+            db_session, customer_region
+        )
 
         # Create CatalogSection dynamically from the product categories and meta IDs
-        product_sections = [
-            CatalogSection(title=category, retailer_product_ids=meta_ids)
-            for category, meta_ids in catalog_sections.items()
-        ]
+        product_sections = []
+        unique_meta_ids = set()  # To ensure unique product IDs
+
+        for category, meta_ids in catalog_sections.items():
+            # Filter out duplicates
+            unique_meta_ids.update(meta_ids)
+
+            # Create a section for each category with unique product IDs
+            product_sections.append(
+                CatalogSection(
+                    title=category, retailer_product_ids=list(unique_meta_ids)
+                )
+            )
 
         # Send the catalog product list message
         whatsapp.send_catalog_product_list(
@@ -307,87 +323,8 @@ def send_catalog(phone_number, catalog_id, whatsapp, CatalogSection, db_session)
 
     except Exception as e:
         # Handle the exception and return the error
+        print(f"Error sending catalog: {str(e)}")  # Log the error for debugging
         return False, f"Failed to send catalog: {str(e)}"
-
-
-# def confirm_order_with_payment(
-#     whatsapp,
-#     phone_number,
-#     ListSection,
-#     SectionRow,
-#     total_amount,
-#     total_reward,
-#     fruits_items,
-#     vegetables_items,
-#     product_quantities,
-#     username,
-#     delivery_address,
-# ):
-#     try:
-#         # Convert lists of items into formatted strings
-#         fruits_items_str = "\n".join(
-#             [
-#                 f"{item['product']} * {item['quantity']} @{item['price']} each"
-#                 for item in fruits_items
-#             ]
-#         )
-#         vegetables_items_str = "\n".join(
-#             [
-#                 f"{item['product']} * {item['quantity']} @{item['price']} each"
-#                 for item in vegetables_items
-#             ]
-#         )
-
-#         # Send the interactive list for order confirmation with payment method selection
-#         whatsapp.send_interactive_list(
-#             to=phone_number,
-#             header="🥭 Confirm Your Order",
-#             body=(
-#                 f"Hi {username},\n\n"
-#                 f"Here is a summary of your order:\n\n"
-#                 f"Total Amount: ${total_amount:.2f}\n"
-#                 f"Total Reward Balance: ${total_reward:.2f}\n\n"
-#                 f"Delivery Address: {delivery_address}\n\n"
-#                 f"Fruits Items:\n{fruits_items_str}\n\n"
-#                 f"Vegetables Items:\n{vegetables_items_str}\n\n"
-#                 "Please confirm your order and select a payment method to proceed."
-#             ),
-#             button="Select Payment",
-#             sections=[
-#                 ListSection(
-#                     title="Payment Options",
-#                     rows=[
-#                         SectionRow(
-#                             id="pay_with_cash",
-#                             title="Cash on Delivery",  # 19 characters
-#                             description="Pay with cash on delivery.",
-#                         ),
-#                         SectionRow(
-#                             id="pay_with_rewards",
-#                             title="Use Rewards",  # Shortened to 11 characters
-#                             description="Use your rewards balance.",
-#                         ),
-#                         SectionRow(
-#                             id="edit_order",
-#                             title="Make Changes",  # 12 characters
-#                             description="Modify your order before confirming.",
-#                         ),
-#                         SectionRow(
-#                             id="cancel_order",
-#                             title="Cancel Order",  # 12 characters
-#                             description="Abort the order and restart.",
-#                         ),
-#                     ],
-#                 ),
-#             ],
-#             footer="Please select a payment method.",
-#         )
-#         # Return True and success message on successful execution
-#         return True, "Order confirmation with payment method sent successfully."
-
-#     except Exception as e:
-#         # Catch any exception and return False with the error message
-#         return False, f"Failed to send order confirmation: {str(e)}"
 
 
 ##
@@ -813,6 +750,7 @@ def sent_to_packaging(whatsapp, phone_number, order, ListSection, SectionRow):
     try:
         # Fetch product details using the get_order_products function
         order_products_details = get_order_products(order.id)
+        print(f"Order Products Details: {order_products_details}")  # Debugging output
 
         # Initialize a list for formatted items
         product_details = []
@@ -826,6 +764,8 @@ def sent_to_packaging(whatsapp, phone_number, order, ListSection, SectionRow):
         formatted_items = (
             "\n".join(product_details) if product_details else "No products ordered"
         )
+
+        print("Formatted Items for Message:", formatted_items)  # Debugging output
 
         whatsapp.send_interactive_list(
             to=phone_number,
@@ -867,8 +807,13 @@ def sent_to_packaging(whatsapp, phone_number, order, ListSection, SectionRow):
             footer="#MufakoseHarvest #MagandangaDelights",
         )
 
+        print("Message sent successfully.")  # Debugging output
         return True, "Packaging status message sent successfully."
+
     except Exception as e:
+        print(
+            f"Error in sending packaging status message: {str(e)}"
+        )  # Log error details
         return False, f"Failed to send packaging status message: {str(e)}"
 
 

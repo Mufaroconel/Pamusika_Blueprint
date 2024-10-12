@@ -68,6 +68,7 @@ from dboperations import (
     update_product_availability,
     add_product_availability,
     get_products_by_region,
+    get_product_availability_by_product_id,
 )
 from models import (
     db,
@@ -337,17 +338,27 @@ def manage_products():
                 currency,
                 product_category,
             )
-            
+
             if updated_product:
                 flash(f"Product '{name}' updated successfully.", "success")
+                print("Proceeding to update the product availability")
 
                 # Update ProductAvailability for this product in the employee's region
-                update_product_availability(
-                    updated_product.id, employee_region, reward_amount, availability, quantity
+                print(
+                    f"reward {reward_amount} availability {availability} quantity {quantity}"
                 )
+                update_product_availability(
+                    updated_product.id,
+                    employee_region,
+                    reward_amount,
+                    availability,
+                    quantity,
+                )
+                print("Product availability updated successfully.")
+
             else:
                 flash(f"Failed to update product '{name}'.", "danger")
-        
+
         else:  # Add new product or record availability for existing product
             existing_product = Product.query.filter_by(meta_id=meta_id).first()
             if existing_product:
@@ -358,7 +369,10 @@ def manage_products():
                     availability,
                     quantity,
                 )
-                flash(f"Availability record added for existing product '{existing_product.name}'!", "success")
+                flash(
+                    f"Availability record added for existing product '{existing_product.name}'!",
+                    "success",
+                )
             else:
                 new_product = add_new_product(
                     meta_id,
@@ -375,7 +389,7 @@ def manage_products():
                         reward_amount,
                         availability,
                         quantity,
-                    )  
+                    )
                     flash(f"Product '{name}' added successfully!", "success")
                 else:
                     flash(f"Error adding product '{name}'.", "danger")
@@ -384,6 +398,7 @@ def manage_products():
 
     results = get_products_by_region(employee_region)
     return render_template("manage_products.html", results=results)
+
 
 @app.route("/rewards")
 @login_required
@@ -818,8 +833,15 @@ class GroupAPI(MethodView):
             elif user_choice == "edit_amount":
                 whatsapp.send_text(to=phone, body="Please Enter amount to withdraw")
             elif user_choice == "place_order":
+                user = get_customer_by_phone(phone)
+                customer_region = user.region
                 result = send_catalog(
-                    phone, catalog_id, whatsapp, CatalogSection, db_session
+                    phone,
+                    catalog_id,
+                    whatsapp,
+                    CatalogSection,
+                    db_session,
+                    customer_region,
                 )
                 if result:
                     message_sent, res = result
@@ -954,6 +976,8 @@ class GroupAPI(MethodView):
             elif user_choice == "track_order":
                 with app.app_context():
                     orders = get_active_orders_by_phone(phone)
+                    print("orders", orders)
+
                     if not orders or isinstance(orders, str):
                         result = no_orders(whatsapp, phone, ListSection, SectionRow)
                         if result:
@@ -961,10 +985,15 @@ class GroupAPI(MethodView):
                         else:
                             message_sent, res = None, None
                     else:
+                        print("Order found")
                         try:
                             # Check if 'orders' is iterable
                             for order in orders:
                                 order_status = order.status
+                                print(
+                                    f"Processing order ID: {order.id}, Status: {order_status}"
+                                )  # Debugging output
+
                                 if order_status == "Packed":
                                     message_sent, res = order_packed(
                                         whatsapp, phone, order, ListSection, SectionRow
@@ -977,9 +1006,16 @@ class GroupAPI(MethodView):
                                     message_sent, res = sent_to_packaging(
                                         whatsapp, phone, order, ListSection, SectionRow
                                     )
+                                    print("sent to packagin", order_on_way)
                                 elif order_status == "Sent for delivery":
                                     message_sent, res = order_on_way(
                                         whatsapp, phone, order, ListSection, SectionRow
+                                    )
+
+                                # Check if a message was sent
+                                if message_sent is None:
+                                    print(
+                                        f"Failed to send message for Order ID: {order.id}"
                                     )
 
                         except TypeError:
@@ -988,6 +1024,10 @@ class GroupAPI(MethodView):
                             order_status = (
                                 order.status
                             )  # Assuming it's a single order object
+                            print(
+                                f"Processing single order ID: {order.id}, Status: {order_status}"
+                            )  # Debugging output
+
                             if order_status == "Sent to Packaging":
                                 message_sent, res = sent_to_packaging(
                                     whatsapp, phone, order, ListSection, SectionRow
@@ -1003,6 +1043,12 @@ class GroupAPI(MethodView):
                             elif order_status == "Sent for delivery":
                                 message_sent, res = order_on_way(
                                     whatsapp, phone, order, ListSection, SectionRow
+                                )
+
+                            # Check if a message was sent
+                            if message_sent is None:
+                                print(
+                                    f"Failed to send message for Order ID: {order.id}"
                                 )
             elif user_choice == "customer_support":
                 message_sent, res = notify_user_about_support_model(
@@ -1047,9 +1093,13 @@ class GroupAPI(MethodView):
                 category_id = product.id
                 with app.app_context():
                     name_category = get_product_name_and_category(category_id)
-
+                    print(name_category.id)
                 if name_category is not None:
-                    reward_amount = name_category.reward_amount
+                    product_availability = get_product_availability_by_product_id(
+                        name_category.id
+                    )
+                    print(product_availability)
+                    reward_amount = product_availability.reward_amount
                     item_reward_total = reward_amount * product.quantity
                     total_reward += item_reward_total
 
@@ -1079,6 +1129,7 @@ class GroupAPI(MethodView):
 
             if total_amount >= 1.00:
                 execute_order()
+                print("order executed")
                 result = confirm_order_with_payment(
                     whatsapp,
                     phone,
@@ -1090,6 +1141,7 @@ class GroupAPI(MethodView):
                     username,
                     delivery_address,
                 )
+                print("result for confirm order with payment", result)
             else:
                 result = order_amount_restriction(
                     whatsapp,
@@ -1101,6 +1153,7 @@ class GroupAPI(MethodView):
                     customer_id,
                     delivery_address,
                 )
+                print("result for order amount restriction", result)
 
             if result:
                 message_sent, res = result

@@ -169,8 +169,15 @@ def update_product_availability(
         availability_record.availability = availability  # Update availability status
         availability_record.quantity = quantity  # Update quantity
         availability_record.reward_amount = reward_amount
-        db.session.commit()
-        print(f"Updated availability for Product ID: {product_id} in Region: {region}")
+
+        try:
+            db.session.commit()  # Commit changes to the database
+            print(
+                f"Updated availability for Product ID: {product_id} in Region: {region}"
+            )
+        except Exception as e:
+            db.session.rollback()  # Rollback in case of error
+            print(f"Error updating product availability: {e}")
     else:
         print(
             f"No availability record found for Product ID: {product_id} in Region: {region}"
@@ -186,23 +193,35 @@ def delete_product_by_id(product_id):
     return product
 
 
-def get_available_products_by_category(db_session):
+def get_available_products_by_category(db_session, customer_region):
     """
-    Queries the database to fetch available products and group them by category.
+    Queries the database to fetch available products based on their region.
 
     :param db_session: SQLAlchemy session to use for querying.
-    :return: Dictionary where keys are product categories and values are lists of meta_ids.
+    :param customer_region: The region for which to check product availability.
+    :return: Dictionary where keys are product categories and values are lists of product meta_ids.
     """
     try:
-        # Query products from the database where availability is True
-        products = db_session.query(Product).filter_by(availability=True).all()
+        # Query ProductAvailability for the specified region where availability is True
+        available_products = (
+            db_session.query(ProductAvailability)
+            .filter_by(region=customer_region, availability=True)
+            .all()
+        )
 
         # Create a dictionary to group products by category
         catalog_sections = {}
-        for product in products:
-            if product.product_category not in catalog_sections:
-                catalog_sections[product.product_category] = []
-            catalog_sections[product.product_category].append(product.meta_id)
+
+        # Fetch product details for each available product
+        for availability in available_products:
+            product = (
+                db_session.query(Product).filter_by(id=availability.product_id).first()
+            )
+            if product:
+                # Group products by their category
+                if product.product_category not in catalog_sections:
+                    catalog_sections[product.product_category] = []
+                catalog_sections[product.product_category].append(product.meta_id)
 
         return catalog_sections
 
@@ -215,17 +234,28 @@ def get_available_products_by_category(db_session):
 
 
 def get_product_details(meta_id):
-    """Fetch product name and price based on meta_id."""
-    product = Product.query.filter_by(
-        meta_id=meta_id
-    ).first()  # Use filter_by to find by meta_id
-    if product:
-        return {
-            "name": product.name,
-            "price": product.selling_price,  # Assuming this is the correct field for selling price
-            "reward_amount": product.reward_amount,
-        }
-    return None  # Return None if the product is not found
+    """Fetch product name, price, and reward amount based on meta_id."""
+    try:
+        # Fetch product from Product table using meta_id
+        product = Product.query.filter_by(meta_id=meta_id).first()
+
+        if product:
+            # Fetch availability from ProductAvailability table
+            availability = ProductAvailability.query.filter_by(
+                product_id=product.id
+            ).first()
+
+            return {
+                "name": product.name,
+                "price": product.selling_price,  # Assuming this is the correct field for selling price
+                "reward_amount": availability.reward_amount if availability else 0.0,
+            }
+
+        return None  # Return None if the product is not found
+
+    except Exception as e:
+        print(f"Error fetching product details: {str(e)}")
+        return None  # Return None in case of an error
 
 
 def delete_all_customers():
@@ -672,13 +702,21 @@ def get_order_products(order_id):
         ).first()  # Assuming 'id' is the primary key
 
         if product:
+            # Fetch availability to get reward amount
+            availability = ProductAvailability.query.filter_by(
+                product_id=product.id
+            ).first()
+            reward_amount = (
+                availability.reward_amount if availability else 0.0
+            )  # Default to 0 if not found
+
             order_products_details.append(
                 {
                     "product_id": product.id,
                     "name": product.name,
                     "price": product.selling_price,  # Assuming this is the correct field for selling price
                     "quantity": quantity,
-                    "reward_amount": product.reward_amount,
+                    "reward_amount": reward_amount,
                 }
             )
         else:
@@ -778,6 +816,28 @@ def get_product_name_and_category(meta_id):
         return name_category
     else:
         return None
+
+
+def get_product_availability_by_product_id(product_id):
+    """
+    Retrieve the ProductAvailability record for a given product_id.
+
+    :param product_id: The ID of the product to look up.
+    :return: ProductAvailability object or None if not found.
+    """
+    try:
+        # Query the ProductAvailability table for the specified product_id
+        availability_record = (
+            db.session.query(ProductAvailability)
+            .filter_by(product_id=product_id)
+            .first()
+        )
+
+        return availability_record  # Returns None if not found
+
+    except Exception as e:
+        print(f"Error fetching product availability: {str(e)}")
+        return None  # Return None in case of an error
 
 
 def get_reward_amount_for_last_order(phone):
