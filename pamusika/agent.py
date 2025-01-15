@@ -6,8 +6,7 @@ load_dotenv()
 
 gemini_token = os.getenv("GEMINI_TOKEN")    
 
-# Replace 'your_api_key' with your actual OpenAI API key
-openai.api_key = 'your_api_key'
+openai.api_key = 'api_key'
 
 def get_response(prompt, context):
     """Generates a response using Gemini based on the prompt and context.
