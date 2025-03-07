@@ -1172,7 +1172,9 @@ class GroupAPI(MethodView):
 app.add_url_rule("/webhook", view_func=GroupAPI.as_view("wa_webhook"))
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    # app.run(debug=False)
+    port = int(os.getenv("PORT", 8000))
+    gunicorn.run(app, host="0.0.0.0", port=port)
 
     with app.app_context():
         db.create_all()
